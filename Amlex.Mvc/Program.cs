@@ -1,4 +1,5 @@
 using Amlex.Mvc.Installers;
+using Amlex.Services.Sparql.Settings;
 
 namespace Amlex.Mvc
 {
@@ -14,6 +15,7 @@ namespace Amlex.Mvc
             // installing dependecies
             builder.Services.InstallDbConnection();
             builder.Services.InstallScopedServices();
+            builder.Services.InstallHttpClients();
 
 
             var app = builder.Build();
