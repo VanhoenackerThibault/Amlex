@@ -1,4 +1,6 @@
 ﻿using Amlex.Interfaces.Services;
+using Amlex.Models.Mappers;
+using Amlex.Models.Models.LegalActs;
 using Amlex.Models.Models.SparqlModels;
 using Amlex.Services.Sparql;
 using Microsoft.AspNetCore.Http;
@@ -17,9 +19,9 @@ namespace Amlex.Mvc.Controllers
         //}
 
         [HttpGet]
-        public async Task<ActionResult<List<SparqlBinding>?>> BackFill()
+        public async Task<ActionResult<List<LegalAct>?>> BackFill()
         {
-            var result = await sparqlApiService.RunBackFillSparqlDataAsync(maxPages: 999);
+            var result = await sparqlApiService.RunBackFillSparqlDataAsync(maxPages: 500);
 
             if (result is null)
             {
@@ -28,7 +30,7 @@ namespace Amlex.Mvc.Controllers
 
             await legalActService.CreateLegalActsAsync(result);
 
-            return result;
+            return result.ToEntityList();
         }
     }
 }

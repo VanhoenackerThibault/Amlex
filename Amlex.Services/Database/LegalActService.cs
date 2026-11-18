@@ -14,37 +14,34 @@ namespace Amlex.Services.Database
     {
         public async Task CreateLegalActsAsync(List<SparqlBinding> bindings)
         {
-            List<LegalAct> acts = await GetLegalActsAsync();
+            List<LegalAct> legalActs = bindings.ToEntityList();
 
-            List<SparqlBinding> sparqlBindings = new List<SparqlBinding>();
-
-            foreach (SparqlBinding item in bindings)
+            foreach (LegalAct item in legalActs)
             {
-                bool found = false;
+                var existing = await dbContext.LegalActs.FirstOrDefaultAsync(x => x.Celex == item.Celex);
 
-                foreach (LegalAct legalAct in acts)
+                if (existing is null)
                 {
-                    if (legalAct.Celex == item.Celex?.Value)
-                    {
-                        found = true;
-                        break;
-                    }
+                    dbContext.LegalActs.Add(item);
                 }
-
-                if (!found)
+                else if (item.LastModifiedAt > existing.LastModifiedAt)
                 {
-                    sparqlBindings.Add(item);
+                    // update fields
+                    existing.TitleNl = item.TitleNl;
+                    existing.TitleEn = item.TitleEn;
+                    existing.TitleFr = item.TitleFr;
+
+                    existing.LastModifiedAt = item.LastModifiedAt;
+                    existing.UpdatedAt = DateTime.UtcNow;
                 }
             }
-
-            await dbContext.LegalActs.AddRangeAsync(sparqlBindings.ToEntity());
 
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task<List<LegalAct>> GetLegalActsAsync()
+        public async Task<List<LegalAct>> GetLegalActsAsync(int take = int.MaxValue)
         {
-            return await dbContext.LegalActs.AsNoTracking().ToListAsync();
+            return await dbContext.LegalActs.AsNoTracking().OrderByDescending(a => a.LastModifiedAt).Take(take).ToListAsync();
         }
 
     }

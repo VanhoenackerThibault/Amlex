@@ -1,8 +1,95 @@
-﻿@{
+﻿@using Amlex.Models.Models.LegalActs
+
+@{
     ViewData["Title"] = "Home Page";
+
+    List<LegalAct> legalActs = ViewBag.Acts ?? new List<LegalAct>();
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container py-4">
+    <h1 class="display-4 mb-4">Legal Acts</h1>
+
+    @if (!legalActs.Any())
+    {
+        <div class="alert alert-info">
+            No legal acts have been imported yet.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>CELEX</th>
+                        <th>Title</th>
+                        <th>In force</th>
+                        <th>Document date</th>
+                        <th>Last modified</th>
+                        <th>CELLAR</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var legalAct in legalActs)
+                    {
+                        <tr>
+                            <td class="fw-semibold">
+                                @legalAct.Celex
+                            </td>
+                            <td>
+                                <div class="fw-semibold">
+                                    @(legalAct.TitleEn
+                                        ?? legalAct.TitleNl
+                                        ?? legalAct.TitleFr
+                                        ?? "No title available")
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(legalAct.TitleNl))
+                                {
+                                    <div class="small text-muted">
+                                        NL: @legalAct.TitleNl
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrWhiteSpace(legalAct.TitleFr))
+                                {
+                                    <div class="small text-muted">
+                                        FR: @legalAct.TitleFr
+                                    </div>
+                                }
+                            </td>
+                            <td>
+                                @if (legalAct.InForce == true)
+                                {
+                                    <span class="badge bg-success">In force</span>
+                                }
+                                else if (legalAct.InForce == false)
+                                {
+                                    <span class="badge bg-danger">Not in force</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Unknown</span>
+                                }
+                            </td>
+                            <td>
+                                @(legalAct.DocumentDate?.ToString("dd MMM yyyy") ?? "-")
+                            </td>
+                            <td>
+                                @legalAct.LastModifiedAt.ToString("dd MMM yyyy HH:mm")
+                            </td>
+                            <td>
+                                <a href="@legalAct.CellarId"
+                                   target="_blank"
+                                   rel="noopener"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Open
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>

@@ -1,17 +1,81 @@
 ﻿using Amlex.Models.Models.LegalActs;
 using Amlex.Models.Models.SparqlModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json;
 
 namespace Amlex.Models.Mappers
 {
     public static class LegalActMapper
     {
-        public static List<LegalAct> ToEntity(this List<SparqlBinding> bindings)
+        private static readonly Dictionary<string, string> LanguageMap = new()
+        {
+            ["http://publications.europa.eu/resource/authority/language/NLD"] = "nld",
+            ["http://publications.europa.eu/resource/authority/language/ENG"] = "eng",
+            ["http://publications.europa.eu/resource/authority/language/FRA"] = "fra"
+        };
+
+        public static List<LegalAct> ToEntityList(this List<SparqlBinding> bindings)
         {
 
+            Dictionary<string, List<SparqlBinding>> groupedBindings = bindings.ToGroups();
+
+            List<LegalAct> legalActs = new List<LegalAct>();
+
+            foreach (List<SparqlBinding> bindingsForCelex in groupedBindings.Values)
+            {
+                SparqlBinding firstBinding = bindingsForCelex.First();
+
+                string? celex = firstBinding.Celex?.Value;
+                string? cellarId = firstBinding.Work?.Value;
+                string? docDate = firstBinding.DocumentDate?.Value;
+                string? lastModifiedAt = firstBinding.LastModified?.Value;
+
+                bool? inForce = firstBinding.InForce?.Value switch
+                {
+                    "1" => true,
+                    "0" => false,
+                    _ => null
+                };
+
+                Dictionary<string, string?> titles = bindingsForCelex.GetTitles();
+
+                if (celex is null || cellarId is null)
+                {
+                    continue;
+                }
+
+                LegalAct legalAct = new LegalAct
+                {
+                    CellarId = cellarId,
+                    Celex = celex,
+                    TitleNl = titles["nld"],
+                    TitleEn = titles["eng"],
+                    TitleFr = titles["fra"],
+                    InForce = inForce,
+
+                    DocumentDate = firstBinding.DocumentDate?.Value.ToDateTime(),
+                    EntryIntoForce = firstBinding.EntryIntoForce?.Value.ToDateTime(),
+                    Deadline = firstBinding.Deadline?.Value.ToDateTime(),
+                    EndOfValidity = firstBinding.EndOfValidity?.Value.ToDateTime(),
+                    LastModifiedAt = firstBinding.LastModified?.Value.ToDateTime() ?? DateTime.UtcNow,
+
+                    ResourceType = GetResourceTypeCode(firstBinding.ResourceType?.Value),
+
+                    // These two are the most important missing pieces
+                    EuroVocUris = bindingsForCelex.GetEuroVocUris(),
+                    Amends = bindingsForCelex.GetRelationValues(b => b.Amends),
+                    // Repeals / ProposesToAmend the same way
+
+                    Repeals = bindingsForCelex.GetRelationValues(b => b.Repeals),
+                    ProposesToAmend = bindingsForCelex.GetRelationValues(b => b.ProposesToAmend),
+                };
+
+                legalActs.Add(legalAct);
+            }
+
+            return legalActs;
+        }
+
+        private static Dictionary<string, List<SparqlBinding>> ToGroups(this List<SparqlBinding> bindings)
+        {
             Dictionary<string, List<SparqlBinding>> groupedBindings = new Dictionary<string, List<SparqlBinding>>();
 
             foreach (SparqlBinding item in bindings)
@@ -30,73 +94,80 @@ namespace Amlex.Models.Mappers
                 bindingsForCelex.Add(item);
             }
 
-            List<LegalAct> legalActs = new List<LegalAct>();
+            return groupedBindings;
+        }
 
-            const string languageUrlBase = "http://publications.europa.eu/resource/authority/language/";
-
-            foreach (List<SparqlBinding> bindingsForCelex in groupedBindings.Values)
+        private static Dictionary<string, string?> GetTitles(this List<SparqlBinding> bindings)
+        {
+            Dictionary<string, string?> result = new Dictionary<string, string?>
             {
-                SparqlBinding firstBinding = bindingsForCelex.First();
+                ["nld"] = null,
+                ["eng"] = null,
+                ["fra"] = null
+            };
 
-                string? nlTitle = null;
-                string? frTitle = null;
-                string? enTitle = null;
-
-                string? celex = firstBinding.Celex?.Value;
-                string? cellarId = firstBinding.Work?.Value;
-                string? docDate = firstBinding.DocumentDate?.Value;
-                string? lastModifiedAt = firstBinding.LastModified?.Value;
-                bool? inForce = null;
-
-                if(firstBinding.InForce?.Value == "1")
-                {
-                    inForce = true;
-                }
-
-                if (firstBinding.InForce?.Value == "0")
-                {
-                    inForce = false;
-                }
-
-                foreach (SparqlBinding item in bindingsForCelex)
-                {
-                    if (languageUrlBase + "ENG" == item.Language?.Value)
-                    {
-                        enTitle = item.Title?.Value;
-                    }
-
-                    if (languageUrlBase + "NLD" == item.Language?.Value)
-                    {
-                        nlTitle = item.Title?.Value;
-                    }
-
-                    if (languageUrlBase + "FRA" == item.Language?.Value)
-                    {
-                        frTitle = item.Title?.Value;
-                    }
-                }
-
-                if (celex is null || cellarId is null || docDate is null)
-                {
+            foreach (var item in bindings)
+            {
+                if (item.Language?.Value is null || item.Title?.Value is null)
                     continue;
-                }
 
-                LegalAct legalAct = new LegalAct
+                if (LanguageMap.TryGetValue(item.Language.Value, out var code) && result[code] is null)
                 {
-                    CellarId = cellarId,
-                    Celex = celex,
-                    TitleNl = nlTitle,
-                    TitleEn = enTitle,
-                    TitleFr = frTitle,
-                    InForce = inForce,
-                    DocumentDate = DateTime.Parse(docDate),
-                    LastModifiedAt = DateTime.Parse(lastModifiedAt ?? DateTime.UtcNow.ToString("O")),
-                };
-
-                legalActs.Add(legalAct);
+                    result[code] = item.Title.Value;
+                }
             }
 
-            return legalActs;
+            return result;
+        }
+
+        private static DateTime? ToDateTime(this string? date)
+        {
+            if (string.IsNullOrEmpty(date) || string.IsNullOrWhiteSpace(date))
+            {
+                return null;
+            }
+
+            return DateTime.Parse(date);
+        }
+
+        private static List<string> GetEuroVocUris(this List<SparqlBinding> bindings)
+        {
+            return bindings
+                .Select(b => b.EuroVoc?.Value)
+                .Where(v => !string.IsNullOrEmpty(v))
+                .Distinct()
+                .Cast<string>()
+                .ToList();
+        }
+
+        private static List<string> GetRelationValues(this List<SparqlBinding> bindings, Func<SparqlBinding, SparqlValue?> selector)
+        {
+            return bindings
+                .Select(selector)
+                .Select(v => v?.Value)
+                .Where(v => !string.IsNullOrEmpty(v))
+                .Distinct()
+                .Cast<string>()
+                .ToList();
+        }
+
+        private static string? GetResourceTypeCode(string? type)
+        {
+            if (string.IsNullOrEmpty(type) || string.IsNullOrWhiteSpace(type))
+            {
+                return null;
+            }
+
+            int lastSlashIndex = type.LastIndexOf('/');
+
+            // No slash or trailing slash → return original
+            if (lastSlashIndex < 0 || lastSlashIndex == type.Length - 1)
+            {
+                return type;
+            }
+
+            return type.Substring(lastSlashIndex + 1);
+
         }
     }
 }

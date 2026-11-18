@@ -22,10 +22,34 @@ namespace Amlex.Repository.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Amlex.Models.Core.LegalActsFetchHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("FetchedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LustUpdateTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LegalActsFetchHistory");
+                });
+
             modelBuilder.Entity("Amlex.Models.Models.LegalActs.LegalAct", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.PrimitiveCollection<string>("Amends")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("AssignedTeamId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Celex")
@@ -39,14 +63,47 @@ namespace Amlex.Repository.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("Deadline")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("DocumentDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EndOfValidity")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EntryIntoForce")
+                        .HasColumnType("datetime2");
+
+                    b.PrimitiveCollection<string>("EuroVocUris")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool?>("InForce")
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("LastModifiedAt")
                         .HasColumnType("datetime2");
+
+                    b.PrimitiveCollection<string>("ProposesToAmend")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RelevanceCategory")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RelevanceRationale")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("RelevanceScore")
+                        .HasColumnType("int");
+
+                    b.PrimitiveCollection<string>("Repeals")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResourceType")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TitleEn")
                         .HasColumnType("nvarchar(max)");
@@ -55,6 +112,10 @@ namespace Amlex.Repository.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TitleNl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("Topics")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UpdatedAt")

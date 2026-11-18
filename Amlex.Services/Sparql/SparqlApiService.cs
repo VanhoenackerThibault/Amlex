@@ -1,35 +1,30 @@
 ﻿using Amlex.Models.Models.SparqlModels;
-using Amlex.Repository;
 using Amlex.Services.Sparql.Settings;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
 
 namespace Amlex.Services.Sparql
 {
     public class SparqlApiService(IHttpClientFactory factory, ILogger<SparqlApiService> logger)
     {
-        public async Task<SparqlResponse?> GetSparqlDataAsync()
-        {
-            HttpClient client = factory.CreateClient("SPARQL");
+        //public async Task<SparqlResponse?> GetSparqlDataAsync()
+        //{
+        //    HttpClient client = factory.CreateClient("SPARQL");
 
-            var content = new FormUrlEncodedContent(
-            [
-                new KeyValuePair<string, string>("query", SparqlSettings.BuildQuery())
-            ]);
+        //    var content = new FormUrlEncodedContent(
+        //    [
+        //        new KeyValuePair<string, string>("query", SparqlSettings.BuildQuery())
+        //    ]);
 
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/sparql-results+json"));
-            var response = await client.PostAsync(SparqlSettings.ApiEndpoint, content);
+        //    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/sparql-results+json"));
+        //    var response = await client.PostAsync(SparqlSettings.ApiEndpoint, content);
 
-            response.EnsureSuccessStatusCode();
+        //    response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadFromJsonAsync<SparqlResponse>();
-        }
+        //    return await response.Content.ReadFromJsonAsync<SparqlResponse>();
+        //}
 
         public async Task<List<SparqlBinding>?> RunBackFillSparqlDataAsync(int pageSize = 500, int maxPages = 1)
         {
@@ -44,7 +39,7 @@ namespace Amlex.Services.Sparql
             {
                 var content = new FormUrlEncodedContent(
                 [
-                    new KeyValuePair<string, string>("query", SparqlSettings.BackFillQuery(pageSize, lastModifiedCursor))
+                    new KeyValuePair<string, string>("query", SparqlSettings.BuildQuery(pageSize, before: lastModifiedCursor))
                 ]);
 
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/sparql-results+json"));
@@ -72,14 +67,12 @@ namespace Amlex.Services.Sparql
 
                 sparqlData.AddRange(data.Results.Bindings);
 
-                logger.LogInformation("CELLAR backfill page {Page} returned {Count} bindings",currentPage + 1, data.Results.Bindings.Count);
+                logger.LogInformation("CELLAR backfill page {Page} returned {Count} bindings", currentPage + 1, data.Results.Bindings.Count);
 
                 if (data.Results.Bindings.Count < pageSize)
                 {
                     break;
                 }
-
-
 
                 lastModifiedCursor = data.Results.Bindings
                     .Where(d => d.LastModified?.Value is not null)

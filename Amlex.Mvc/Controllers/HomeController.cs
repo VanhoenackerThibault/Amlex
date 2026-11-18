@@ -1,13 +1,16 @@
+using Amlex.Interfaces.Services;
 using Amlex.Mvc.Models;
+using Amlex.Services.Database;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace Amlex.Mvc.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController(ILegalActService legalActService) : Controller
     {
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            //ViewBag.Acts = await legalActService.GetLegalActsAsync(100);
             return View();
         }
 

@@ -19,6 +19,18 @@ public class SparqlBinding
     [JsonPropertyName("inForce")]
     public SparqlValue? InForce { get; set; }
 
+    [JsonPropertyName("entryIntoForce")]
+    public SparqlValue? EntryIntoForce { get; set; }
+
+    [JsonPropertyName("deadline")]
+    public SparqlValue? Deadline { get; set; }
+
+    [JsonPropertyName("endOfValidity")]
+    public SparqlValue? EndOfValidity { get; set; }
+
+    [JsonPropertyName("resType")]
+    public SparqlValue? ResourceType { get; set; }
+
     [JsonPropertyName("title")]
     public SparqlValue? Title { get; set; }
 
@@ -28,6 +40,12 @@ public class SparqlBinding
     [JsonPropertyName("eurovoc")]
     public SparqlValue? EuroVoc { get; set; }
 
-    [JsonPropertyName("resType")]
-    public SparqlValue? ResourceType { get; set; }
+    [JsonPropertyName("amends")]
+    public SparqlValue? Amends { get; set; }
+
+    [JsonPropertyName("repeals")]
+    public SparqlValue? Repeals { get; set; }
+
+    [JsonPropertyName("proposesToAmend")]
+    public SparqlValue? ProposesToAmend { get; set; }
 }
