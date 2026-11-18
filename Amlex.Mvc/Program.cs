@@ -13,7 +13,8 @@ namespace Amlex.Mvc
             builder.Services.AddControllersWithViews();
 
             // installing dependecies
-            builder.Services.InstallDbConnection();
+            string? conn = builder.Configuration.GetConnectionString("DefaultConnection");
+            builder.Services.InstallDbConnection(conn);
             builder.Services.InstallScopedServices();
             builder.Services.InstallHttpClients();
 

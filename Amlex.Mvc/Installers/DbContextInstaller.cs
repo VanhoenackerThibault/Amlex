@@ -5,14 +5,24 @@ namespace Amlex.Mvc.Installers
 {
     public static class DbContextInstaller
     {
-        public static void InstallDbConnection(this IServiceCollection services)
+        public static void InstallDbConnection(this IServiceCollection services, string? conn = null)
         {
-            // using in memory for debuging
-            services.AddDbContext<AmlexDbContext>(options =>
+            // if no conn is given switch over to inmemory database
+            if (conn is null)
             {
-                options.UseInMemoryDatabase(nameof(AmlexDbContext));
+                services.AddDbContext<AmlexDbContext>(options =>
+                {
+                    options.UseInMemoryDatabase(nameof(AmlexDbContext));
 
-            });
+                });
+            }
+            else
+            {
+                services.AddDbContext<AmlexDbContext>(options =>
+                {
+                    options.UseSqlServer(conn);
+                });
+            }
         }
     }
 }
