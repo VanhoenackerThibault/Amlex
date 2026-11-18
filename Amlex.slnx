@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Amlex.Interfaces/Amlex.Interfaces.csproj" />
+  <Project Path="Amlex.Models/Amlex.Models.csproj" />
+  <Project Path="Amlex.Mvc/Amlex.Mvc.csproj" />
+  <Project Path="Amlex.Repository/Amlex.Repository.csproj" />
+  <Project Path="Amlex.Services/Amlex.Services.csproj" />
+</Solution>
