@@ -1,5 +1,10 @@
-﻿using Amlex.Models.Models.SparqlModels;
+﻿using Amlex.Interfaces.Services;
+using Amlex.Models.Core;
+using Amlex.Models.Mappers;
+using Amlex.Models.Models.LegalActs;
+using Amlex.Models.Models.SparqlModels;
 using Amlex.Services.Sparql.Settings;
+using Azure;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
 using System.Net.Http.Headers;
@@ -7,82 +12,170 @@ using System.Net.Http.Json;
 
 namespace Amlex.Services.Sparql
 {
-    public class SparqlApiService(IHttpClientFactory factory, ILogger<SparqlApiService> logger)
+    public class SparqlApiService(IHttpClientFactory factory, ILogger<SparqlApiService> logger, ILegalActService legalActService, ILegalActsFetchHistoryService legalActsFetchHistoryService, ILegalActRelationService legalActRelationService, ILegalActTopicService legalActTopicService)
     {
-        //public async Task<SparqlResponse?> GetSparqlDataAsync()
-        //{
-        //    HttpClient client = factory.CreateClient("SPARQL");
-
-        //    var content = new FormUrlEncodedContent(
-        //    [
-        //        new KeyValuePair<string, string>("query", SparqlSettings.BuildQuery())
-        //    ]);
-
-        //    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/sparql-results+json"));
-        //    var response = await client.PostAsync(SparqlSettings.ApiEndpoint, content);
-
-        //    response.EnsureSuccessStatusCode();
-
-        //    return await response.Content.ReadFromJsonAsync<SparqlResponse>();
-        //}
-
-        public async Task<List<SparqlBinding>?> RunBackFillSparqlDataAsync(int pageSize = 500, int maxPages = 1)
+        private async Task<SparqlResponse> GetSparqlDataAsync(FormUrlEncodedContent content)
         {
             HttpClient client = factory.CreateClient("SPARQL");
 
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/sparql-results+json"));
+            var response = await client.PostAsync(SparqlSettings.ApiEndpoint, content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string errorBody = await response.Content.ReadAsStringAsync();
+
+                logger.LogError("A problem occurred while adding backlog: status code {StatusCode}, response body: {ErrorBody}", response.StatusCode, errorBody);
+
+                throw new InvalidOperationException($"CELLAR SPARQL request failed with status code {(int)response.StatusCode}.");
+            }
+
+            SparqlResponse? data = await response.Content.ReadFromJsonAsync<SparqlResponse>();
+
+            if (data is null)
+            {
+                logger.LogError("A problem has occured while fetching data");
+                throw new InvalidOperationException("CELLAR SPARQL returned a successful response, but its JSON payload could not be deserialized.");
+            }
+
+            return data;
+        }
+
+
+        public async Task RunBackFillSparqlDataAsync(int pageSize = 200, int maxPages = 1)
+        {
             int currentPage = 0;
             DateTime? lastModifiedCursor = null;
 
-            List<SparqlBinding> sparqlData = new List<SparqlBinding>();
-
             while (currentPage < maxPages)
             {
-                var content = new FormUrlEncodedContent(
-                [
-                    new KeyValuePair<string, string>("query", SparqlSettings.BuildQuery(pageSize, before: lastModifiedCursor))
-                ]);
-
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/sparql-results+json"));
-                var response = await client.PostAsync(SparqlSettings.ApiEndpoint, content);
-
-                if (!response.IsSuccessStatusCode)
+                try
                 {
-                    string errorBody = await response.Content.ReadAsStringAsync();
 
-                    logger.LogError(
-                        "A problem occurred while adding backlog: status code {StatusCode}, response body: {ErrorBody}",
-                        response.StatusCode,
-                        errorBody);
+                    // fetching base info to create legalact
+                    FormUrlEncodedContent content = new FormUrlEncodedContent(
+                    [
+                        new KeyValuePair<string, string>("query", SparqlSettings.BuildDiscoveryQuery(pageSize, before: lastModifiedCursor))
+                    ]);
 
-                    continue;
+                    SparqlResponse data = await GetSparqlDataAsync(content);
+
+                    List<LegalAct> acts = data.Results.Bindings.ToEntityList();
+
+                    if (acts is null || acts.Count == 0)
+                    {
+                        break;
+                    }
+
+                    await legalActService.CreateLegalActsAsync(acts);
+
+                    // fetching relation info to link tables
+                    FormUrlEncodedContent contentRelations = new FormUrlEncodedContent(
+                    [
+                        new KeyValuePair<string, string>("query", SparqlSettings.BuildRelationsQuery(acts.Select(a => a.Celex)))
+                    ]);
+
+                    SparqlResponse relationData = await GetSparqlDataAsync(contentRelations);
+                    List<LegalAct> dbLegalActs = await legalActService.GetLegalActsByListCelexAsync(acts.Select(a => a.Celex).ToList());
+
+                    List<LegalActRelation> legalActRelations = relationData.Results.Bindings.ToRelationEntities(
+                            dbLegalActs.ToDictionary(legalAct => legalAct.Celex, legalAct => legalAct.Id));
+
+                    await legalActRelationService.CreateLegalActRelationAsync(legalActRelations);
+
+
+                    // fetching topics
+                    FormUrlEncodedContent contentTopics = new FormUrlEncodedContent(
+                    [
+                        new KeyValuePair<string, string>("query", SparqlSettings.BuildEuroVocQuery(acts.Select(a => a.Celex)))
+                    ]);
+
+                    SparqlResponse TopicData = await GetSparqlDataAsync(contentTopics);
+
+                    List<LegalActTopic> legalActTopics = TopicData.Results.Bindings.ToTopicEntities(
+                            dbLegalActs.ToDictionary(legalAct => legalAct.Celex, legalAct => legalAct.Id));
+
+                    await legalActTopicService.CreateLegalActTopic(legalActTopics);
+
+                    await legalActsFetchHistoryService.CreateWatchItemAsync(acts);
+
+
+                    lastModifiedCursor = acts.Min(d => d.LastModifiedAt);
+
+                    currentPage++;
+
                 }
-
-                SparqlResponse? data = await response.Content.ReadFromJsonAsync<SparqlResponse>();
-
-                if (data?.Results.Bindings is null || data.Results.Bindings.Count == 0)
+                catch (Exception ex)
                 {
-                    logger.LogInformation("CELLAR backfill finished: no bindings on page {Page}", currentPage + 1);
+                    logger.LogError("A problem has occured while getting backfill message: {message}", ex);
                     break;
                 }
 
-                sparqlData.AddRange(data.Results.Bindings);
-
-                logger.LogInformation("CELLAR backfill page {Page} returned {Count} bindings", currentPage + 1, data.Results.Bindings.Count);
-
-                if (data.Results.Bindings.Count < pageSize)
-                {
-                    break;
-                }
-
-                lastModifiedCursor = data.Results.Bindings
-                    .Where(d => d.LastModified?.Value is not null)
-                    .Min(d => DateTime.Parse(d.LastModified!.Value, CultureInfo.InvariantCulture));
-
-                currentPage++;
             }
-
-            return sparqlData;
         }
 
+
+        public async Task UpdateSparqlData()
+        {
+            const int PageSize = 5000;
+            DateTime lastUpdateTime = await legalActsFetchHistoryService.GetLastUpdateTimeAsync();
+            DateTime lastFetchTime = await legalActsFetchHistoryService.GetLastFetchTimeAsync();
+
+            if (DateTime.UtcNow < lastFetchTime.AddHours(1))
+            {
+                logger.LogWarning("UpdateSparqlData called but fetched data less than 1 hour ago, returning");
+                return;
+            }
+
+
+
+
+            // fetching base info to create legalact
+            FormUrlEncodedContent content = new FormUrlEncodedContent(
+            [
+                new KeyValuePair<string, string>("query", SparqlSettings.BuildDiscoveryQuery(PageSize, since: lastUpdateTime))
+            ]);
+
+            SparqlResponse data = await GetSparqlDataAsync(content);
+
+            List<LegalAct> acts = data.Results.Bindings.ToEntityList();
+
+            if (acts is null || acts.Count == 0)
+            {
+                return;
+            }
+
+            await legalActService.CreateLegalActsAsync(acts);
+
+            // fetching relation info to link tables
+            FormUrlEncodedContent contentRelations = new FormUrlEncodedContent(
+            [
+                new KeyValuePair<string, string>("query", SparqlSettings.BuildRelationsQuery(acts.Select(a => a.Celex)))
+            ]);
+
+            SparqlResponse relationData = await GetSparqlDataAsync(contentRelations);
+            List<LegalAct> dbLegalActs = await legalActService.GetLegalActsByListCelexAsync(acts.Select(a => a.Celex).ToList());
+
+            List<LegalActRelation> legalActRelations = relationData.Results.Bindings.ToRelationEntities(
+                    dbLegalActs.ToDictionary(legalAct => legalAct.Celex, legalAct => legalAct.Id));
+
+            await legalActRelationService.CreateLegalActRelationAsync(legalActRelations);
+
+
+            // fetching topics
+            FormUrlEncodedContent contentTopics = new FormUrlEncodedContent(
+            [
+                new KeyValuePair<string, string>("query", SparqlSettings.BuildEuroVocQuery(acts.Select(a => a.Celex)))
+            ]);
+
+            SparqlResponse TopicData = await GetSparqlDataAsync(contentTopics);
+
+            List<LegalActTopic> legalActTopics = TopicData.Results.Bindings.ToTopicEntities(
+                    dbLegalActs.ToDictionary(legalAct => legalAct.Celex, legalAct => legalAct.Id));
+
+            await legalActTopicService.CreateLegalActTopic(legalActTopics);
+
+            await legalActsFetchHistoryService.CreateWatchItemAsync(acts);
+        }
     }
 }

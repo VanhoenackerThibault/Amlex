@@ -57,21 +57,35 @@ namespace Amlex.Repository.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CellarId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Celex = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Sector = table.Column<int>(type: "int", nullable: false),
                     TitleNl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TitleEn = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TitleFr = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    InForce = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    InForce = table.Column<bool>(type: "bit", nullable: true),
                     DocumentDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EntryIntoForce = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Deadline = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EndOfValidity = table.Column<DateTime>(type: "datetime2", nullable: true),
                     LastModifiedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ResourceTypes = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsWatchlist = table.Column<bool>(type: "bit", nullable: false),
+                    ResourceType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_LegalActs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LegalActsFetchHistory",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FetchedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastUpdateTime = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LegalActsFetchHistory", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -180,6 +194,58 @@ namespace Amlex.Repository.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "LegalActRelations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SourceLegalActId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RelationType = table.Column<int>(type: "int", nullable: false),
+                    TargetCelex = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    TargetLegalActId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    LegalActId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LegalActRelations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LegalActRelations_LegalActs_LegalActId",
+                        column: x => x.LegalActId,
+                        principalTable: "LegalActs",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_LegalActRelations_LegalActs_SourceLegalActId",
+                        column: x => x.SourceLegalActId,
+                        principalTable: "LegalActs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_LegalActRelations_LegalActs_TargetLegalActId",
+                        column: x => x.TargetLegalActId,
+                        principalTable: "LegalActs",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LegalActTopics",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    LegalActId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EuroVocUri = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EuroVocCode = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LegalActTopics", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LegalActTopics_LegalActs_LegalActId",
+                        column: x => x.LegalActId,
+                        principalTable: "LegalActs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -218,6 +284,27 @@ namespace Amlex.Repository.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LegalActRelations_LegalActId",
+                table: "LegalActRelations",
+                column: "LegalActId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LegalActRelations_SourceLegalActId_RelationType_TargetCelex",
+                table: "LegalActRelations",
+                columns: new[] { "SourceLegalActId", "RelationType", "TargetCelex" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LegalActRelations_TargetLegalActId",
+                table: "LegalActRelations",
+                column: "TargetLegalActId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LegalActTopics_LegalActId",
+                table: "LegalActTopics",
+                column: "LegalActId");
         }
 
         /// <inheritdoc />
@@ -239,13 +326,22 @@ namespace Amlex.Repository.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "LegalActs");
+                name: "LegalActRelations");
+
+            migrationBuilder.DropTable(
+                name: "LegalActsFetchHistory");
+
+            migrationBuilder.DropTable(
+                name: "LegalActTopics");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "LegalActs");
         }
     }
 }

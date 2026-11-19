@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Amlex.Repository.Migrations
 {
     [DbContext(typeof(AmlexDbContext))]
-    [Migration("20261118142858_ChangedType")]
-    partial class ChangedType
+    [Migration("20261119103844_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,81 @@ namespace Amlex.Repository.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Amlex.Models.Core.LegalActRelation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("LegalActId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RelationType")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SourceLegalActId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TargetCelex")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid?>("TargetLegalActId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LegalActId");
+
+                    b.HasIndex("TargetLegalActId");
+
+                    b.HasIndex("SourceLegalActId", "RelationType", "TargetCelex")
+                        .IsUnique();
+
+                    b.ToTable("LegalActRelations");
+                });
+
+            modelBuilder.Entity("Amlex.Models.Core.LegalActTopic", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EuroVocCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EuroVocUri")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("LegalActId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LegalActId");
+
+                    b.ToTable("LegalActTopics");
+                });
+
+            modelBuilder.Entity("Amlex.Models.Core.LegalActsFetchHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("FetchedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LastUpdateTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LegalActsFetchHistory");
+                });
 
             modelBuilder.Entity("Amlex.Models.Models.LegalActs.LegalAct", b =>
                 {
@@ -42,7 +117,16 @@ namespace Amlex.Repository.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("Deadline")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("DocumentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EndOfValidity")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EntryIntoForce")
                         .HasColumnType("datetime2");
 
                     b.Property<bool?>("InForce")
@@ -50,6 +134,9 @@ namespace Amlex.Repository.Migrations
 
                     b.Property<DateTime>("LastModifiedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("ResourceType")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TitleEn")
                         .HasColumnType("nvarchar(max)");
@@ -266,6 +353,39 @@ namespace Amlex.Repository.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Amlex.Models.Core.LegalActRelation", b =>
+                {
+                    b.HasOne("Amlex.Models.Models.LegalActs.LegalAct", null)
+                        .WithMany("Relations")
+                        .HasForeignKey("LegalActId");
+
+                    b.HasOne("Amlex.Models.Models.LegalActs.LegalAct", "SourceLegalAct")
+                        .WithMany()
+                        .HasForeignKey("SourceLegalActId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Amlex.Models.Models.LegalActs.LegalAct", "TargetLegalAct")
+                        .WithMany()
+                        .HasForeignKey("TargetLegalActId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("SourceLegalAct");
+
+                    b.Navigation("TargetLegalAct");
+                });
+
+            modelBuilder.Entity("Amlex.Models.Core.LegalActTopic", b =>
+                {
+                    b.HasOne("Amlex.Models.Models.LegalActs.LegalAct", "LegalAct")
+                        .WithMany("Topics")
+                        .HasForeignKey("LegalActId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LegalAct");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -315,6 +435,13 @@ namespace Amlex.Repository.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Amlex.Models.Models.LegalActs.LegalAct", b =>
+                {
+                    b.Navigation("Relations");
+
+                    b.Navigation("Topics");
                 });
 #pragma warning restore 612, 618
         }

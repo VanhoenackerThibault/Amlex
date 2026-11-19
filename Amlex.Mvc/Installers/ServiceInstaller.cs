@@ -10,6 +10,9 @@ namespace Amlex.Mvc.Installers
         {
             services.AddScoped<SparqlApiService>();
             services.AddScoped<ILegalActService, LegalActService>();
+            services.AddScoped<ILegalActsFetchHistoryService, LegalActsFetchHistoryService>();
+            services.AddScoped<ILegalActRelationService, LegalActRelationService>();
+            services.AddScoped<ILegalActTopicService, LegalActTopicService>();
         }
     }
 }

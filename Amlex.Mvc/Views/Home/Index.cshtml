@@ -1,95 +1,208 @@
 ﻿@using Amlex.Models.Models.LegalActs
+@using System.Linq
 
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Overview";
 
-    List<LegalAct> legalActs = ViewBag.Acts ?? new List<LegalAct>();
+    List<LegalAct> legalActs = ViewBag.Acts as List<LegalAct> ?? new List<LegalAct>();
+
+    int inForceCount = legalActs.Count(x => x.InForce == true);
+    int recentlyModifiedCount = legalActs.Count(x =>
+        x.LastModifiedAt >= DateTime.UtcNow.AddDays(-30));
+    int upcomingDeadlinesCount = legalActs.Count(x =>
+        x.Deadline.HasValue && x.Deadline.Value >= DateTime.UtcNow);
 }
 
-<div class="container py-4">
-    <h1 class="display-4 mb-4">Legal Acts</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+}
 
-    @if (!legalActs.Any())
-    {
-        <div class="alert alert-info">
-            No legal acts have been imported yet.
+<div class="anx-page">
+    <header class="anx-hero">
+        <div class="anx-container">
+            <p class="anx-eyebrow">EU Food &amp; Feed Legal Monitoring</p>
+
+            <h1 class="anx-title">
+                Clarity across European food legislation.
+            </h1>
+
+            <p class="anx-lede">
+                Track EU legal acts, amendments, and compliance deadlines in one
+                structured workspace.
+            </p>
+
+            <div class="anx-actions">
+                <a class="anx-button anx-button-primary" href="#legal-acts">
+                    Explore legal acts
+                </a>
+
+                <a class="anx-button anx-button-ghost" href="#metrics">
+                    Monitoring summary
+                </a>
+            </div>
         </div>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th>CELEX</th>
-                        <th>Title</th>
-                        <th>In force</th>
-                        <th>Document date</th>
-                        <th>Last modified</th>
-                        <th>CELLAR</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var legalAct in legalActs)
-                    {
-                        <tr>
-                            <td class="fw-semibold">
-                                @legalAct.Celex
-                            </td>
-                            <td>
-                                <div class="fw-semibold">
-                                    @(legalAct.TitleEn
-                                        ?? legalAct.TitleNl
-                                        ?? legalAct.TitleFr
-                                        ?? "No title available")
-                                </div>
+    </header>
 
-                                @if (!string.IsNullOrWhiteSpace(legalAct.TitleNl))
-                                {
-                                    <div class="small text-muted">
-                                        NL: @legalAct.TitleNl
-                                    </div>
-                                }
+    <section id="legal-acts" class="anx-container">
+        <div class="anx-section-head">
+            <div>
+                <p class="anx-section-kicker">CELLAR Repository</p>
+                <h2>Latest legal acts</h2>
+            </div>
 
-                                @if (!string.IsNullOrWhiteSpace(legalAct.TitleFr))
-                                {
-                                    <div class="small text-muted">
-                                        FR: @legalAct.TitleFr
-                                    </div>
-                                }
-                            </td>
-                            <td>
-                                @if (legalAct.InForce == true)
-                                {
-                                    <span class="badge bg-success">In force</span>
-                                }
-                                else if (legalAct.InForce == false)
-                                {
-                                    <span class="badge bg-danger">Not in force</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Unknown</span>
-                                }
-                            </td>
-                            <td>
-                                @(legalAct.DocumentDate?.ToString("dd MMM yyyy") ?? "-")
-                            </td>
-                            <td>
-                                @legalAct.LastModifiedAt.ToString("dd MMM yyyy HH:mm")
-                            </td>
-                            <td>
-                                <a href="@legalAct.CellarId"
-                                   target="_blank"
-                                   rel="noopener"
-                                   class="btn btn-sm btn-outline-primary">
-                                    Open
-                                </a>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+            @if (legalActs.Any())
+            {
+                <div class="anx-controls">
+                    <input type="search"
+                           id="anx-search-input"
+                           class="anx-input"
+                           placeholder="Search CELEX, title, or topic..."
+                           aria-label="Search legal acts" />
+
+                    <div class="anx-filter-group" role="group" aria-label="Filter by status">
+                        <button type="button" class="anx-filter is-active" data-filter="all">
+                            All
+                        </button>
+
+                        <button type="button" class="anx-filter" data-filter="in-force">
+                            In force
+                        </button>
+
+                        <button type="button" class="anx-filter" data-filter="not-in-force">
+                            Not in force
+                        </button>
+                    </div>
+                </div>
+            }
         </div>
-    }
+
+        @if (!legalActs.Any())
+        {
+            <div class="anx-empty">
+                <h3>No legal acts imported yet</h3>
+                <p>
+                    Run a CELLAR synchronization to populate Amlex with European
+                    food and feed legislation.
+                </p>
+            </div>
+        }
+        else
+        {
+            <div class="anx-table-card">
+                <div class="anx-table-scroll">
+                    <table class="anx-table" id="anx-acts-table">
+                        <thead>
+                            <tr>
+                                <th>CELEX</th>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Dates</th>
+                                <th>Modified</th>
+                                <th class="anx-align-right">Source</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var legalAct in legalActs)
+                            {
+                                var statusKey = legalAct.InForce == true
+                                    ? "in-force"
+                                    : legalAct.InForce == false
+                                        ? "not-in-force"
+                                        : "unknown";
+
+                                var primaryTitle = legalAct.TitleNl
+                                    ?? legalAct.TitleEn
+                                    ?? legalAct.TitleFr
+                                    ?? "Untitled legal act";
+
+                                <tr class="anx-row"
+                                    data-status="@statusKey"
+                                    data-search="@legalAct.Celex @primaryTitle @legalAct.TitleNl @legalAct.TitleFr">
+
+                                    <td>
+                                        <span class="anx-celex">@legalAct.Celex</span>
+
+                                        @if (!string.IsNullOrWhiteSpace(legalAct.ResourceType))
+                                        {
+                                            <span class="anx-type">@legalAct.ResourceType</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <div class="anx-act-title">@primaryTitle</div>
+
+                                        @if (legalAct.Relations?.Any() == true)
+                                        {
+                                            <span class="anx-tag">
+                                                @legalAct.Relations.Count
+                                                @(legalAct.Relations.Count == 1 ? "relation" : "relations")
+                                            </span>
+                                        }
+
+                                        @if (legalAct.Topics?.Any() == true)
+                                        {
+                                            foreach (var topic in legalAct.Topics.Take(2))
+                                            {
+                                                <span class="anx-tag">
+                                                    @topic.EuroVocCode
+                                                </span>
+                                            }
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (legalAct.InForce == true)
+                                        {
+                                            <span class="anx-status anx-status-active">In force</span>
+                                        }
+                                        else if (legalAct.InForce == false)
+                                        {
+                                            <span class="anx-status anx-status-inactive">Not in force</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="anx-status anx-status-unknown">Unknown</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <div>@(legalAct.DocumentDate?.ToString("dd MMM yyyy") ?? "—")</div>
+
+                                        @if (legalAct.Deadline.HasValue)
+                                        {
+                                            <div class="anx-muted">
+                                                Due @legalAct.Deadline.Value.ToString("dd MMM yyyy")
+                                            </div>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @legalAct.LastModifiedAt.ToString("dd MMM yyyy")
+                                    </td>
+
+                                    <td class="anx-align-right">
+                                        <a class="anx-link"
+                                           href="@legalAct.CellarId"
+                                           target="_blank"
+                                           rel="noopener">
+                                            CELLAR
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="anx-no-results" class="anx-no-results" hidden>
+                    No legal acts match your current filters.
+                </div>
+            </div>
+        }
+    </section>
 </div>
+
+@section Scripts {
+    <script src="~/js/home.js" asp-append-version="true"></script>
+}

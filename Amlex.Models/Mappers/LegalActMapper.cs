@@ -59,13 +59,13 @@ namespace Amlex.Models.Mappers
 
                     ResourceType = GetResourceTypeCode(firstBinding.ResourceType?.Value),
 
-                    // These two are the most important missing pieces
-                    EuroVocUris = bindingsForCelex.GetEuroVocUris(),
-                    Amends = bindingsForCelex.GetRelationValues(b => b.Amends),
-                    // Repeals / ProposesToAmend the same way
+                    //// These two are the most important missing pieces
+                    //EuroVocUris = bindingsForCelex.GetEuroVocUris(),
+                    //Amends = bindingsForCelex.GetRelationValues(b => b.Amends),
+                    //// Repeals / ProposesToAmend the same way
 
-                    Repeals = bindingsForCelex.GetRelationValues(b => b.Repeals),
-                    ProposesToAmend = bindingsForCelex.GetRelationValues(b => b.ProposesToAmend),
+                    //Repeals = bindingsForCelex.GetRelationValues(b => b.Repeals),
+                    //ProposesToAmend = bindingsForCelex.GetRelationValues(b => b.ProposesToAmend),
                 };
 
                 legalActs.Add(legalAct);

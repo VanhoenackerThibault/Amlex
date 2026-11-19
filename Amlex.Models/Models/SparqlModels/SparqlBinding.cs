@@ -40,12 +40,9 @@ public class SparqlBinding
     [JsonPropertyName("eurovoc")]
     public SparqlValue? EuroVoc { get; set; }
 
-    [JsonPropertyName("amends")]
-    public SparqlValue? Amends { get; set; }
+    [JsonPropertyName("rel")]
+    public SparqlValue? Relation { get; set; }
 
-    [JsonPropertyName("repeals")]
-    public SparqlValue? Repeals { get; set; }
-
-    [JsonPropertyName("proposesToAmend")]
-    public SparqlValue? ProposesToAmend { get; set; }
+    [JsonPropertyName("otherCelex")]
+    public SparqlValue? OtherCelex { get; set; }
 }

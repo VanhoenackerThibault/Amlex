@@ -6,8 +6,8 @@ namespace Amlex.Models.Core
 {
     public class LegalActsFetchHistory
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public DateTime FetchedAt { get; set; }
-        public DateTime LustUpdateTime { get; set; }
+        public DateTime LastUpdateTime { get; set; }
     }
 }

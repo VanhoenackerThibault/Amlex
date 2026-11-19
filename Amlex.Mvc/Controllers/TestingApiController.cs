@@ -19,18 +19,11 @@ namespace Amlex.Mvc.Controllers
         //}
 
         [HttpGet]
-        public async Task<ActionResult<List<LegalAct>?>> BackFill()
+        public async Task<IActionResult> BackFill()
         {
-            var result = await sparqlApiService.RunBackFillSparqlDataAsync(maxPages: 500);
+            await sparqlApiService.UpdateSparqlData();
 
-            if (result is null)
-            {
-                return NoContent();
-            }
-
-            await legalActService.CreateLegalActsAsync(result);
-
-            return result.ToEntityList();
+            return Ok();
         }
     }
 }

@@ -12,9 +12,8 @@ namespace Amlex.Services.Database
 {
     public class LegalActService(AmlexDbContext dbContext) : ILegalActService
     {
-        public async Task CreateLegalActsAsync(List<SparqlBinding> bindings)
+        public async Task CreateLegalActsAsync(List<LegalAct> legalActs)
         {
-            List<LegalAct> legalActs = bindings.ToEntityList();
 
             foreach (LegalAct item in legalActs)
             {
@@ -26,11 +25,16 @@ namespace Amlex.Services.Database
                 }
                 else if (item.LastModifiedAt > existing.LastModifiedAt)
                 {
-                    // update fields
+                    Console.WriteLine("Updated a legalact");
                     existing.TitleNl = item.TitleNl;
                     existing.TitleEn = item.TitleEn;
                     existing.TitleFr = item.TitleFr;
-
+                    existing.InForce = item.InForce;
+                    existing.DocumentDate = item.DocumentDate;
+                    existing.EntryIntoForce = item.EntryIntoForce;
+                    existing.Deadline = item.Deadline;
+                    existing.EndOfValidity = item.EndOfValidity;
+                    existing.ResourceType = item.ResourceType;
                     existing.LastModifiedAt = item.LastModifiedAt;
                     existing.UpdatedAt = DateTime.UtcNow;
                 }
@@ -42,6 +46,11 @@ namespace Amlex.Services.Database
         public async Task<List<LegalAct>> GetLegalActsAsync(int take = int.MaxValue)
         {
             return await dbContext.LegalActs.AsNoTracking().OrderByDescending(a => a.LastModifiedAt).Take(take).ToListAsync();
+        }
+
+        public async Task<List<LegalAct>> GetLegalActsByListCelexAsync(List<string> celexes)
+        {
+            return await dbContext.LegalActs.Where(l => celexes.Contains(l.Celex)).ToListAsync();
         }
 
     }
