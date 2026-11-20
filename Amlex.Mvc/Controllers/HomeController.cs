@@ -13,7 +13,7 @@ namespace Amlex.Mvc.Controllers
         [Authorize]
         public async Task<IActionResult> Index()
         {
-            ViewBag.Acts = await legalActService.GetLegalActsAsync(100);
+            ViewBag.Acts = await legalActService.GetLegalActsAsync(100, "CORRIGENDUM");
             ViewBag.EuroVocCodes = await euroVocCodesService.GetEuroVocCodesAsync();
             return View();
         }

@@ -24,10 +24,6 @@ namespace Amlex.Repository.Seeders
                 }
             }
 
-
-
-
-
         }
     }
 }

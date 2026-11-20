@@ -76,14 +76,14 @@
                 <div>
                     <dt>Entry into force</dt>
                     <dd>
-                        @(Model.EntryIntoForce?.ToString("dd MMM yyyy") ?? "—")
+                        @(Model.EntryIntoForce?.ToString("dd MMM yyyy") ?? "-")
                     </dd>
                 </div>
 
                 <div>
                     <dt>Deadline</dt>
                     <dd>
-                        @(Model.Deadline?.ToString("dd MMM yyyy") ?? "—")
+                        @(Model.Deadline?.ToString("dd MMM yyyy") ?? "No Set date")
                     </dd>
                 </div>
 
@@ -110,6 +110,48 @@
                            rel="noopener">
                             View in CELLAR
                         </a>
+                    </dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="amx-details-card">
+            <h2>Documents</h2>
+
+            <dl class="amx-details-grid">
+                <div>
+                    <dt>Nederlands</dt>
+                    <dd>
+						<div>
+                            <a class="amx-link" href="@($"https://eur-lex.europa.eu/legal-content/NL/TXT/PDF/?uri=CELEX:{Model.Celex}")" target="_blank" rel="noopener">PDF</a>
+                        </div>
+                        <div>
+                            <a class="amx-link" href="@($"https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=CELEX:{Model.Celex}")" target="_blank" rel="noopener">HTML</a>
+                        </div>
+                    </dd>
+                </div>
+                
+                <div>
+                    <dt>Engels</dt>
+                    <dd>
+                        <div>
+                            <a class="amx-link" href="@($"https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:{Model.Celex}")" target="_blank" rel="noopener">PDF</a>
+                        </div>
+                        <div>
+                            <a class="amx-link" href="@($"https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:{Model.Celex}")" target="_blank" rel="noopener">HTML</a>
+                        </div>
+                    </dd>
+                </div>
+                
+                <div>
+                    <dt>French</dt>
+                    <dd>
+                        <div>
+                            <a class="amx-link" href="@($"https://eur-lex.europa.eu/legal-content/FR/TXT/PDF/?uri=CELEX:{Model.Celex}")" target="_blank" rel="noopener">PDF</a>
+                        </div>
+                        <div>
+                            <a class="amx-link" href="@($"https://eur-lex.europa.eu/legal-content/FR/TXT/HTML/?uri=CELEX:{Model.Celex}")" target="_blank" rel="noopener">HTML</a>
+                        </div>
                     </dd>
                 </div>
             </dl>
@@ -162,7 +204,7 @@
                             out var sectionName);
 
                         <span class="amx-tag">
-                            @(hasSection ? sectionName : topic.EuroVocCode)
+                            @(hasSection ? sectionName : topic.EuroVocCode),
                         </span>
                     }
                 </div>

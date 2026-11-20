@@ -7,8 +7,7 @@
 
     List<LegalAct> legalActs = ViewBag.Acts as List<LegalAct> ?? new List<LegalAct>();
 
-    List<EuroVocCodes> euroVocCodes = ViewBag.EuroVocCodes as List<EuroVocCodes>
-        ?? new List<EuroVocCodes>();
+    List<EuroVocCodes> euroVocCodes = ViewBag.EuroVocCodes as List<EuroVocCodes> ?? new List<EuroVocCodes>();
 
     int inForceCount = legalActs.Count(x => x.InForce == true);
     int recentlyModifiedCount = legalActs.Count(x => x.LastModifiedAt >= DateTime.UtcNow.AddDays(-30));
@@ -177,12 +176,10 @@
                     <table class="amx-table" id="amx-acts-table">
                         <thead>
                             <tr>
-                                <th>CELEX</th>
                                 <th>Title</th>
                                 <th>Status</th>
-                                <th>Dates</th>
+                                <th>Upload date</th>
                                 <th>Modified</th>
-                                <th class="amx-align-right">Source</th>
                             </tr>
                         </thead>
 
@@ -198,7 +195,7 @@
                                 <tr data-status="@statusKey"
                                     data-search="@act.Celex @primaryTitle @act.TitleEn @act.TitleFr">
 
-                                    @* CELEX *@
+                                    @* CELEX
                                     <td>
                                         <span class="amx-celex">
                                             <a href="@($"https://eur-lex.europa.eu/legal-content/NL/TXT/PDF/?uri=CELEX:{act.Celex}")"
@@ -208,7 +205,7 @@
                                         {
                                             <span class="amx-resource-type">@act.ResourceType</span>
                                         }
-                                    </td>
+                                    </td> *@
 
                                     @* Title + tags *@
                                     <td>
@@ -283,14 +280,14 @@
                                     </td>
 
                                     @* Source link *@
-                                    <td class="amx-align-right">
+                                    @* <td class="amx-align-right">
                                         <a class="amx-cellar-link"
                                            href="@act.CellarId"
                                            target="_blank"
                                            rel="noopener">
                                             CELLAR
                                         </a>
-                                    </td>
+                                    </td> *@
                                 </tr>
                             }
                         </tbody>

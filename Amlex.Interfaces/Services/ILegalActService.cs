@@ -7,7 +7,7 @@ namespace Amlex.Interfaces.Services
     {
         public Task CreateLegalActsAsync(List<LegalAct> legalActs);
 
-        public Task<List<LegalAct>> GetLegalActsAsync(int take = int.MaxValue);
+        public Task<List<LegalAct>> GetLegalActsAsync(int take = int.MaxValue, string excludedType = "");
 
         public Task<List<LegalAct>> GetLegalActsByListCelexAsync(List<string> celexes);
 

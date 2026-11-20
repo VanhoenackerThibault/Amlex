@@ -474,7 +474,7 @@
 
 /* Title column */
 .amx-act-title {
-    max-width: 420px;
+    max-width: 700px;
     color: var(--ink);
     font-weight: 500;
     line-height: 1.4;
@@ -550,7 +550,7 @@
 
 /* Modified column */
 .amx-modified {
-    color: var(--ash);
+    color: var(--ink);
     font-size: .875rem;
     white-space: nowrap;
 }

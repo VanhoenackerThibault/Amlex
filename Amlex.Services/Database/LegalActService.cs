@@ -48,9 +48,16 @@ namespace Amlex.Services.Database
             return await dbContext.LegalActs.AsNoTracking().Include(l => l.Topics).Include(l => l.Relations).FirstOrDefaultAsync(l => l.Id == id);
         }
 
-        public async Task<List<LegalAct>> GetLegalActsAsync(int take = int.MaxValue)
+        public async Task<List<LegalAct>> GetLegalActsAsync(int take = int.MaxValue, string excludedType = "")
         {
-            return await dbContext.LegalActs.AsNoTracking().OrderByDescending(a => a.LastModifiedAt).Include(l => l.Topics).Include(l => l.Relations).Take(take).ToListAsync();
+            return await dbContext.LegalActs
+                .AsNoTracking()
+                .OrderByDescending(a => a.LastModifiedAt)
+                .Include(l => l.Topics)
+                .Include(l => l.Relations)
+                .Take(take)
+                .Where(l => l.ResourceType != excludedType)
+                .ToListAsync();
         }
 
         public async Task<List<LegalAct>> GetLegalActsByListCelexAsync(List<string> celexes)
