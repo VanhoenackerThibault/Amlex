@@ -1,0 +1,219 @@
+﻿@model LegalAct
+@using Amlex.Models.Core
+
+@{
+    ViewData["Title"] = "Legal act details";
+
+    var euroVocCodes = ViewBag.EuroVocCodes as List<EuroVocCodes>
+        ?? new List<EuroVocCodes>();
+
+    var euroVocSectionsByUri = euroVocCodes
+        .GroupBy(code => code.EuroVocUri, StringComparer.OrdinalIgnoreCase)
+        .ToDictionary(
+            group => group.Key,
+            group => group.First().SectionName,
+            StringComparer.OrdinalIgnoreCase);
+
+    var primaryTitle = Model.TitleNl
+        ?? Model.TitleEn
+        ?? Model.TitleFr
+        ?? "Untitled legal act";
+
+    var statusKey = Model.InForce == true
+        ? "in-force"
+        : Model.InForce == false
+            ? "not-in-force"
+            : "unknown";
+
+    var statusText = Model.InForce == true
+        ? "In force"
+        : Model.InForce == false
+            ? "Not in force"
+            : "Unknown";
+}
+
+<link rel="stylesheet" href="~/css/details.css" asp-append-version="true" />
+
+<div class="amx-page">
+    <div class="amx-details-container">
+
+        <a class="amx-back-link" asp-controller="Home" asp-action="Index">
+            &larr; Back to overview
+        </a>
+
+        <header class="amx-details-header">
+            <span class="amx-eyebrow">EU legal act</span>
+
+            <h1 class="amx-details-title">
+                @primaryTitle
+            </h1>
+
+            <div class="amx-details-meta">
+                <span class="amx-celex">@Model.Celex</span>
+
+                @if (!string.IsNullOrWhiteSpace(Model.ResourceType))
+                {
+                    <span class="amx-type">@Model.ResourceType</span>
+                }
+
+                <span class="amx-status amx-status-@statusKey">
+                    @statusText
+                </span>
+            </div>
+        </header>
+
+        <section class="amx-details-card">
+            <h2>Key information</h2>
+
+            <dl class="amx-details-grid">
+                <div>
+                    <dt>Document date</dt>
+                    <dd>
+                        @(Model.DocumentDate?.ToString("dd MMM yyyy") ?? "—")
+                    </dd>
+                </div>
+
+                <div>
+                    <dt>Entry into force</dt>
+                    <dd>
+                        @(Model.EntryIntoForce?.ToString("dd MMM yyyy") ?? "—")
+                    </dd>
+                </div>
+
+                <div>
+                    <dt>Deadline</dt>
+                    <dd>
+                        @(Model.Deadline?.ToString("dd MMM yyyy") ?? "—")
+                    </dd>
+                </div>
+
+                <div>
+                    <dt>End of validity</dt>
+                    <dd>
+                        @(Model.EndOfValidity?.ToString("dd MMM yyyy") ?? "—")
+                    </dd>
+                </div>
+
+                <div>
+                    <dt>Last modified</dt>
+                    <dd>
+                        @Model.LastModifiedAt.ToString("dd MMM yyyy HH:mm") UTC
+                    </dd>
+                </div>
+
+                <div>
+                    <dt>Source</dt>
+                    <dd>
+                        <a class="amx-link"
+                           href="@Model.CellarId"
+                           target="_blank"
+                           rel="noopener">
+                            View in CELLAR
+                        </a>
+                    </dd>
+                </div>
+            </dl>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(Model.TitleEn) ||
+             !string.IsNullOrWhiteSpace(Model.TitleFr))
+        {
+            <section class="amx-details-card">
+                <h2>Available titles</h2>
+
+                <div class="amx-title-list">
+                    @if (!string.IsNullOrWhiteSpace(Model.TitleNl))
+                    {
+                        <div class="amx-title-row">
+                            <span class="amx-lang-tag">NL</span>
+                            <span>@Model.TitleNl</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.TitleEn))
+                    {
+                        <div class="amx-title-row">
+                            <span class="amx-lang-tag">EN</span>
+                            <span>@Model.TitleEn</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.TitleFr))
+                    {
+                        <div class="amx-title-row">
+                            <span class="amx-lang-tag">FR</span>
+                            <span>@Model.TitleFr</span>
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+
+        @if (Model.Topics?.Any() == true)
+        {
+            <section class="amx-details-card">
+                <h2>EuroVoc topics</h2>
+
+                <div class="amx-tags">
+                    @foreach (var topic in Model.Topics)
+                    {
+                        var hasSection = euroVocSectionsByUri.TryGetValue(
+                            topic.EuroVocUri,
+                            out var sectionName);
+
+                        <span class="amx-tag">
+                            @(hasSection ? sectionName : topic.EuroVocCode)
+                        </span>
+                    }
+                </div>
+            </section>
+        }
+
+        @if (Model.Relations?.Any() == true)
+        {
+            <section class="amx-details-card">
+                <h2>Related legal acts</h2>
+
+                <ul class="amx-relation-list">
+                    @foreach (var relation in Model.Relations)
+                    {
+                        <li>
+                            <span class="amx-relation-type">
+                                @relation.RelationType
+                            </span>
+
+                            <span class="amx-relation-celex">
+                                @relation.TargetCelex
+                            </span>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
+
+        <section class="amx-details-card">
+            <h2>Reviewer notes</h2>
+
+            <div class="amx-note-block">
+                <h3>Internal notes</h3>
+
+                @* <p class="amx-note">
+                    @(string.IsNullOrWhiteSpace(Model.InternalNotes)
+                        ? "No internal notes have been added yet."
+                        : Model.InternalNotes)
+                </p> *@
+            </div>
+
+            <div class="amx-note-block">
+                <h3>Customer notes</h3>
+
+                @* <p class="amx-note">
+                    @(string.IsNullOrWhiteSpace(Model.CustomerNotes)
+                        ? "No customer notes have been added yet."
+                        : Model.CustomerNotes)
+                </p> *@
+            </div>
+        </section>
+
+    </div>
+</div>

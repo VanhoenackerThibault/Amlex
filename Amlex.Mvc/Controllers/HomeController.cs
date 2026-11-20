@@ -1,4 +1,5 @@
 using Amlex.Interfaces.Services;
+using Amlex.Models.Models.LegalActs;
 using Amlex.Mvc.Models;
 using Amlex.Services.Database;
 using Microsoft.AspNetCore.Authorization;
@@ -7,13 +8,29 @@ using System.Diagnostics;
 
 namespace Amlex.Mvc.Controllers
 {
-    [Authorize]
-    public class HomeController(ILegalActService legalActService) : Controller
+    public class HomeController(ILegalActService legalActService, IEuroVocCodesService euroVocCodesService) : Controller
     {
+        [Authorize]
         public async Task<IActionResult> Index()
         {
             ViewBag.Acts = await legalActService.GetLegalActsAsync(100);
+            ViewBag.EuroVocCodes = await euroVocCodesService.GetEuroVocCodesAsync();
             return View();
+        }
+
+        [Authorize]
+        [HttpGet("/Details/{id:guid}")]
+        public async Task<IActionResult> LegalActDetails(string id)
+        {
+            LegalAct? act = await legalActService.GetLegalActByIdAsync(new Guid(id));
+
+            if (act is null)
+            {
+                return RedirectToAction(nameof(Error));
+            }
+
+            ViewBag.EuroVocCodes = await euroVocCodesService.GetEuroVocCodesAsync();
+            return View(act);
         }
 
         public IActionResult Privacy()

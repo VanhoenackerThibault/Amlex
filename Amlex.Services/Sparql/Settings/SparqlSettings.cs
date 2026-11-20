@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Amlex.Models.Core;
+using System;
 
 namespace Amlex.Services.Sparql.Settings;
 
@@ -6,36 +7,15 @@ public static class SparqlSettings
 {
     public const string ApiEndpoint = "https://publications.europa.eu/webapi/rdf/sparql";
 
-    private const string EuroVocValues = """
-        <http://eurovoc.europa.eu/6569>
-        <http://eurovoc.europa.eu/1279>
-        <http://eurovoc.europa.eu/1442>
-        <http://eurovoc.europa.eu/1445>
-        <http://eurovoc.europa.eu/1590>
-        <http://eurovoc.europa.eu/2735>
-        <http://eurovoc.europa.eu/2531>
-        <http://eurovoc.europa.eu/6052>
-        <http://eurovoc.europa.eu/c_60d786af>
-        <http://eurovoc.europa.eu/3469>
-        <http://eurovoc.europa.eu/c_7951978e>
-        <http://eurovoc.europa.eu/1755>
-        <http://eurovoc.europa.eu/191>
-        <http://eurovoc.europa.eu/1595>
-        <http://eurovoc.europa.eu/6307>
-        <http://eurovoc.europa.eu/2078>
-        <http://eurovoc.europa.eu/1224>
-        <http://eurovoc.europa.eu/7126>
-        <http://eurovoc.europa.eu/2746>
-        <http://eurovoc.europa.eu/c_ee706406>
-        """;
-
-
     public static string BuildDiscoveryQuery(
+        List<EuroVocCodes> euroVocCodes,
         int pageSize = 100,
         DateTime? since = null,
         DateTime? before = null)
     {
         string cursorFilter = BuildCursorFilter(since, before);
+
+        Console.WriteLine(BuildEuroVocValues(euroVocCodes));
 
         return $$"""
         PREFIX cdm: <http://publications.europa.eu/ontology/cdm#>
@@ -56,7 +36,7 @@ public static class SparqlSettings
           ?language
         WHERE {
           VALUES ?concept {
-            {{EuroVocValues}}
+            {{BuildEuroVocValues(euroVocCodes)}}
           }
 
           ?work cdm:work_is_about_concept_eurovoc ?concept .
@@ -181,5 +161,22 @@ public static class SparqlSettings
             .Replace("\n", "\\n")
             .Replace("\r", "\\r")
             .Replace("\t", "\\t");
+    }
+
+    private static string BuildEuroVocValues(IEnumerable<EuroVocCodes> euroVocCodes)
+    {
+        var values = euroVocCodes
+            .Select(code => $"<{EscapeIri(code.EuroVocUri.Trim())}>");
+
+        return string.Join("\n", values);
+    }
+
+    private static string EscapeIri(string iri)
+    {
+        return iri
+            .Replace("\\", "\\\\")
+            .Replace("<", "\\u003C")
+            .Replace(">", "\\u003E")
+            .Replace("\"", "\\u0022");
     }
 }

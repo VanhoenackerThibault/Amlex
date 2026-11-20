@@ -9,15 +9,12 @@ namespace Amlex.Repository
     {
         public DbSet<LegalAct> LegalActs { get; set; }
         public DbSet<LegalActsFetchHistory> LegalActsFetchHistory { get; set; }
-
         public DbSet<LegalActRelation> LegalActRelations { get; set; }
-
         public DbSet<LegalActTopic> LegalActTopics { get; set; }
+        public DbSet<EuroVocCodes> EuroVocCodes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-
-
             builder.Entity<LegalActRelation>(legalActRelation =>
             {
                 legalActRelation.HasKey(relation => relation.Id);

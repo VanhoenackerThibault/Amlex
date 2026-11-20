@@ -10,5 +10,7 @@ namespace Amlex.Interfaces.Services
         public Task<List<LegalAct>> GetLegalActsAsync(int take = int.MaxValue);
 
         public Task<List<LegalAct>> GetLegalActsByListCelexAsync(List<string> celexes);
+
+        public Task<LegalAct?> GetLegalActByIdAsync(Guid id);
     }
 }

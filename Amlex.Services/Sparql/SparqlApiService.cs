@@ -12,7 +12,7 @@ using System.Net.Http.Json;
 
 namespace Amlex.Services.Sparql
 {
-    public class SparqlApiService(IHttpClientFactory factory, ILogger<SparqlApiService> logger, ILegalActService legalActService, ILegalActsFetchHistoryService legalActsFetchHistoryService, ILegalActRelationService legalActRelationService, ILegalActTopicService legalActTopicService)
+    public class SparqlApiService(IHttpClientFactory factory, ILogger<SparqlApiService> logger, ILegalActService legalActService, ILegalActsFetchHistoryService legalActsFetchHistoryService, ILegalActRelationService legalActRelationService, ILegalActTopicService legalActTopicService, IEuroVocCodesService euroVocCodesService)
     {
         private async Task<SparqlResponse> GetSparqlDataAsync(FormUrlEncodedContent content)
         {
@@ -51,11 +51,12 @@ namespace Amlex.Services.Sparql
             {
                 try
                 {
+                    List<EuroVocCodes> euroVocCodes = await euroVocCodesService.GetEuroVocCodesAsync();
 
                     // fetching base info to create legalact
                     FormUrlEncodedContent content = new FormUrlEncodedContent(
                     [
-                        new KeyValuePair<string, string>("query", SparqlSettings.BuildDiscoveryQuery(pageSize, before: lastModifiedCursor))
+                        new KeyValuePair<string, string>("query", SparqlSettings.BuildDiscoveryQuery(euroVocCodes, pageSize, before: lastModifiedCursor))
                     ]);
 
                     SparqlResponse data = await GetSparqlDataAsync(content);
@@ -117,7 +118,7 @@ namespace Amlex.Services.Sparql
 
         public async Task UpdateSparqlData()
         {
-            const int PageSize = 200;
+            const int pageSize = 200;
             DateTime? lastFetchTime = await legalActsFetchHistoryService.GetLastFetchTimeAsync();
 
             if (lastFetchTime is not null && DateTime.UtcNow < lastFetchTime.Value.AddHours(1))
@@ -129,12 +130,12 @@ namespace Amlex.Services.Sparql
             logger.LogInformation("Getting new info out of cellar database");
 
             DateTime? lastUpdateTime = await legalActsFetchHistoryService.GetLastUpdateTimeAsync();
-
+            List<EuroVocCodes> euroVocCodes = await euroVocCodesService.GetEuroVocCodesAsync();
 
             // fetching base info to create legalact
             FormUrlEncodedContent content = new FormUrlEncodedContent(
             [
-                new KeyValuePair<string, string>("query", SparqlSettings.BuildDiscoveryQuery(PageSize, since: lastUpdateTime))
+                new KeyValuePair<string, string>("query", SparqlSettings.BuildDiscoveryQuery(euroVocCodes, pageSize, since: lastUpdateTime))
             ]);
 
             SparqlResponse data = await GetSparqlDataAsync(content);

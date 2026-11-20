@@ -43,9 +43,14 @@ namespace Amlex.Services.Database
             await dbContext.SaveChangesAsync();
         }
 
+        public async Task<LegalAct?> GetLegalActByIdAsync(Guid id)
+        {
+            return await dbContext.LegalActs.AsNoTracking().Include(l => l.Topics).Include(l => l.Relations).FirstOrDefaultAsync(l => l.Id == id);
+        }
+
         public async Task<List<LegalAct>> GetLegalActsAsync(int take = int.MaxValue)
         {
-            return await dbContext.LegalActs.AsNoTracking().OrderByDescending(a => a.LastModifiedAt).Take(take).ToListAsync();
+            return await dbContext.LegalActs.AsNoTracking().OrderByDescending(a => a.LastModifiedAt).Include(l => l.Topics).Include(l => l.Relations).Take(take).ToListAsync();
         }
 
         public async Task<List<LegalAct>> GetLegalActsByListCelexAsync(List<string> celexes)

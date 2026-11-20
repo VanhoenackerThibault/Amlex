@@ -55,7 +55,7 @@ namespace Amlex.Mvc
 
                 var context = services.GetRequiredService<AmlexDbContext>();
 
-                await DatabaseSeeder.SeedIdentityAsync(services);
+                await DatabaseSeeder.SeedDatabase(services);
             }
 
             app.Run();

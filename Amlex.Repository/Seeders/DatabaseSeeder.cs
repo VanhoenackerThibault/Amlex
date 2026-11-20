@@ -10,7 +10,7 @@ namespace Amlex.Repository.Seeders
 {
     public static class DatabaseSeeder
     {
-        public static async Task SeedIdentityAsync(IServiceProvider services)
+        public static async Task SeedDatabase(IServiceProvider services)
         {
             RoleManager<IdentityRole> roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
@@ -23,6 +23,11 @@ namespace Amlex.Repository.Seeders
                     await roleManager.CreateAsync(new IdentityRole(role));
                 }
             }
+
+
+
+
+
         }
     }
 }

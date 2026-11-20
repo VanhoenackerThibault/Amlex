@@ -1,10 +1,14 @@
 ﻿@using Amlex.Models.Models.LegalActs
+@using Amlex.Models.Core
 @using System.Linq
 
 @{
     ViewData["Title"] = "Overview";
 
     List<LegalAct> legalActs = ViewBag.Acts as List<LegalAct> ?? new List<LegalAct>();
+
+    List<EuroVocCodes> euroVocCodes = ViewBag.EuroVocCodes as List<EuroVocCodes>
+        ?? new List<EuroVocCodes>();
 
     int inForceCount = legalActs.Count(x => x.InForce == true);
     int recentlyModifiedCount = legalActs.Count(x => x.LastModifiedAt >= DateTime.UtcNow.AddDays(-30));
@@ -44,7 +48,7 @@
             </div>
 
             @* Right column — live CELLAR feed card *@
-            <div class="amx-feed-card" aria-hidden="true">
+            @* <div class="amx-feed-card" aria-hidden="true">
                 <div class="amx-feed-head">
                     <div>
                         <p class="amx-feed-head-label">CELLAR feed</p>
@@ -81,7 +85,7 @@
                         </div>
                     }
                 </div>
-            </div>
+            </div> *@
 
         </div>
     </header>
@@ -89,7 +93,7 @@
     @* ============================================================
        STATS BAR
        ============================================================ *@
-    <div id="metrics" class="amx-stats-wrap">
+    @* <div id="metrics" class="amx-stats-wrap">
         <div class="amx-stats-bar">
             <div class="amx-stat">
                 <strong class="amx-stat-value">@legalActs.Count</strong>
@@ -108,7 +112,7 @@
                 <span class="amx-stat-label">upcoming deadlines</span>
             </div>
         </div>
-    </div>
+    </div> *@
 
     @* ============================================================
        LEGAL ACTS TABLE
@@ -208,7 +212,10 @@
 
                                     @* Title + tags *@
                                     <td>
-                                        <div class="amx-act-title">@primaryTitle</div>
+                                        <a class="text-decoration-none" asp-action="LegalActDetails" asp-route-id="@act.Id"> 
+
+                                            <div class="amx-act-title">@primaryTitle</div>
+                                        </a>
 
                                         @{
                                             bool hasTags = (act.Relations?.Any() == true) ||
@@ -224,9 +231,16 @@
                                                         @(act.Relations.Count == 1 ? "relation" : "relations")
                                                     </span>
                                                 }
-                                                @foreach (var topic in (act.Topics ?? Enumerable.Empty<Amlex.Models.Core.LegalActTopic>()).Take(2))
+                                                @foreach (var topic in (act.Topics ?? Enumerable.Empty<Amlex.Models.Core.LegalActTopic>()))
                                                 {
-                                                    <span class="amx-tag">@topic.EuroVocCode</span>
+                                                    var euroVocSection = euroVocCodes
+                                                        .FirstOrDefault(code => string.Equals(code.EuroVocUri,topic.EuroVocUri))?.SectionName;
+                                                    if (euroVocSection is not null)
+                                                    {
+                                                        <span class="amx-tag">
+                                                            @(euroVocSection)
+                                                        </span>
+                                                    }
                                                 }
                                             </div>
                                         }

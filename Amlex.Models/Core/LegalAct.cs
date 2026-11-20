@@ -30,13 +30,4 @@ public class LegalAct
 
     public List<LegalActRelation> Relations { get; set; } = new();
     public List<LegalActTopic> Topics { get; set; } = new();
-
-
-    // Derived later
-    //public List<string> Topics { get; set; } = new();          // e.g. FOOD_SAFETY, HYGIENE
-    //public int? RelevanceScore { get; set; }
-    //public string? RelevanceCategory { get; set; }             // URGENT / IMPORTANT / MONITOR / ...
-    //public string? RelevanceRationale { get; set; }
-    //public Guid? AssignedTeamId { get; set; }
-
 }

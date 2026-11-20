@@ -13,6 +13,7 @@ namespace Amlex.Mvc.Installers
             services.AddScoped<ILegalActsFetchHistoryService, LegalActsFetchHistoryService>();
             services.AddScoped<ILegalActRelationService, LegalActRelationService>();
             services.AddScoped<ILegalActTopicService, LegalActTopicService>();
+            services.AddScoped<IEuroVocCodesService, EuroVocCodesService>();
         }
     }
 }

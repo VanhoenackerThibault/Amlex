@@ -91,7 +91,6 @@ namespace Amlex.Mvc.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-
         public IActionResult AccessDenied()
         {
             return View();
