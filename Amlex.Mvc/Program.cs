@@ -1,5 +1,7 @@
 using Amlex.Mvc.Installers;
 using Amlex.Mvc.Middleware;
+using Amlex.Repository;
+using Amlex.Repository.Seeders;
 using Amlex.Services.Sparql.Settings;
 using Microsoft.AspNetCore.Identity;
 
@@ -7,7 +9,7 @@ namespace Amlex.Mvc
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +48,15 @@ namespace Amlex.Mvc
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}")
                 .WithStaticAssets();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+
+                var context = services.GetRequiredService<AmlexDbContext>();
+
+                await DatabaseSeeder.SeedIdentityAsync(services);
+            }
 
             app.Run();
         }

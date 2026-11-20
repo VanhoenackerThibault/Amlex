@@ -43,7 +43,7 @@ namespace Amlex.Mvc.Controllers
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
 
-                return RedirectToAction(nameof(Register), registerRequest);
+                return View(nameof(Register), registerRequest);
             }
 
             await signInManager.SignInAsync(applicationUser, false);
