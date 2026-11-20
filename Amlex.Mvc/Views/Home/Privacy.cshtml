@@ -1,6 +1,68 @@
 ﻿@{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<style>
+    .amx-prose-page {
+        max-width: 720px;
+        margin-inline: auto;
+        padding: 64px 24px 96px;
+    }
+
+        .amx-prose-page h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.75rem, 3vw, 2.5rem);
+            font-weight: 800;
+            letter-spacing: -.03em;
+            color: var(--forest, #18453b);
+        }
+
+        .amx-prose-page .amx-prose-meta {
+            margin: 0 0 48px;
+            color: var(--ash, #677a71);
+            font-size: .875rem;
+        }
+
+        .amx-prose-page h2 {
+            margin: 40px 0 12px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--forest, #18453b);
+        }
+
+        .amx-prose-page p {
+            margin: 0 0 16px;
+            color: var(--ink, #161d1a);
+            font-size: .9375rem;
+            line-height: 1.75;
+        }
+</style>
+
+<div class="amx-prose-page">
+    <h1>Privacy Policy</h1>
+    <p class="amx-prose-meta">Last updated: 2026</p>
+
+    <h2>Overview</h2>
+    <p>
+        Amlex is an internal monitoring platform for EU food and feed legislation.
+        This page describes how data is collected and used within the platform.
+    </p>
+
+    <h2>Data collected</h2>
+    <p>
+        Amlex collects only the information necessary to provide the service —
+        primarily your email address for authentication purposes.
+        Legal act data is sourced from the EU CELLAR repository and is not user-generated.
+    </p>
+
+    <h2>Data usage</h2>
+    <p>
+        Your data is used solely to authenticate your session and provide access
+        to the Amlex workspace. It is never sold or shared with third parties.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+        For questions about this policy, please contact your Amlex administrator.
+    </p>
+</div>

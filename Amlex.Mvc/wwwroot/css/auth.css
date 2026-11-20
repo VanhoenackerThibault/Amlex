@@ -1,0 +1,188 @@
+﻿/* ================================================================
+   auth.css — Amlex authentication pages
+   Split layout: green brand panel (left) + white form panel (right)
+   ================================================================ */
+
+/* ── Auth page shell ────────────────────────────────────────────── */
+.amx-auth-page {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    min-height: calc(100vh - 64px);
+}
+
+/* ── Brand panel (left) ─────────────────────────────────────────── */
+.amx-auth-brand {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 56px 48px;
+    background: var(--forest);
+    color: var(--white);
+}
+
+.amx-auth-brand-top {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.amx-auth-brand-logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -.03em;
+    color: var(--white);
+    text-decoration: none;
+}
+
+    .amx-auth-brand-logo span {
+        color: rgba(255,255,255,.55);
+        font-weight: 400;
+    }
+
+.amx-auth-brand-headline {
+    max-width: 280px;
+}
+
+    .amx-auth-brand-headline h2 {
+        margin: 0 0 14px;
+        font-size: 1.75rem;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -.03em;
+        color: var(--white);
+    }
+
+    .amx-auth-brand-headline p {
+        margin: 0;
+        color: rgba(255,255,255,.7);
+        font-size: .9375rem;
+        line-height: 1.65;
+    }
+
+/* Feature list */
+.amx-auth-features {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+    .amx-auth-features li {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        color: rgba(255,255,255,.8);
+        font-size: .875rem;
+        line-height: 1.5;
+    }
+
+        .amx-auth-features li::before {
+            content: '';
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+            margin-top: 1px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.15);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='8' viewBox='0 0 10 8'%3E%3Cpath d='M1 4l3 3 5-6' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+.amx-auth-brand-footer {
+    color: rgba(255,255,255,.4);
+    font-size: .75rem;
+}
+
+/* ── Form panel (right) ─────────────────────────────────────────── */
+.amx-auth-form-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px var(--gap);
+    background: var(--parchment);
+}
+
+.amx-auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 44px 40px;
+    box-shadow: var(--shadow-md);
+}
+
+.amx-auth-head {
+    margin-bottom: 32px;
+}
+
+    .amx-auth-head h1 {
+        margin: 0 0 8px;
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -.03em;
+        color: var(--forest);
+    }
+
+    .amx-auth-head p {
+        margin: 0;
+        color: var(--ash);
+        font-size: .9375rem;
+        line-height: 1.6;
+    }
+
+/* Validation summary override */
+[asp-validation-summary] {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border-radius: var(--r);
+    background: var(--inactive-bg);
+    color: var(--inactive-txt);
+    font-size: .875rem;
+}
+
+    [asp-validation-summary]:empty {
+        display: none;
+    }
+
+/* Footer link */
+.amx-auth-footer-link {
+    margin: 0;
+    color: var(--ash);
+    font-size: .875rem;
+    text-align: center;
+}
+
+    .amx-auth-footer-link a {
+        color: var(--pine);
+        font-weight: 600;
+        text-decoration: none;
+        transition: color .15s;
+    }
+
+        .amx-auth-footer-link a:hover {
+            color: var(--forest);
+            text-decoration: underline;
+        }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+    .amx-auth-page {
+        grid-template-columns: 1fr;
+    }
+
+    .amx-auth-brand {
+        display: none; /* hide brand panel on mobile */
+    }
+
+    .amx-auth-form-panel {
+        padding: 32px var(--gap) 56px;
+    }
+
+    .amx-auth-card {
+        padding: 32px 24px;
+    }
+}

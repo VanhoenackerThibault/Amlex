@@ -7,70 +7,143 @@
     List<LegalAct> legalActs = ViewBag.Acts as List<LegalAct> ?? new List<LegalAct>();
 
     int inForceCount = legalActs.Count(x => x.InForce == true);
-    int recentlyModifiedCount = legalActs.Count(x =>
-        x.LastModifiedAt >= DateTime.UtcNow.AddDays(-30));
-    int upcomingDeadlinesCount = legalActs.Count(x =>
-        x.Deadline.HasValue && x.Deadline.Value >= DateTime.UtcNow);
+    int recentlyModifiedCount = legalActs.Count(x => x.LastModifiedAt >= DateTime.UtcNow.AddDays(-30));
+    int upcomingDeadlines = legalActs.Count(x => x.Deadline.HasValue && x.Deadline.Value >= DateTime.UtcNow);
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
 }
 
-<div class="anx-page">
-    <header class="anx-hero">
-        <div class="anx-container">
-            <p class="anx-eyebrow">EU Food &amp; Feed Legal Monitoring</p>
+<div class="amx-page">
 
-            <h1 class="anx-title">
-                Clarity across European food legislation.
-            </h1>
+    @* ============================================================
+       HERO — split: editorial headline left / CELLAR feed right
+       ============================================================ *@
+    <header class="amx-hero">
+        <div class="amx-hero-layout">
 
-            <p class="anx-lede">
-                Track EU legal acts, amendments, and compliance deadlines in one
-                structured workspace.
-            </p>
+            @* Left column *@
+            <div class="amx-hero-content">
+                <span class="amx-hero-label">EU food &amp; feed legal monitoring</span>
 
-            <div class="anx-actions">
-                <a class="anx-button anx-button-primary" href="#legal-acts">
-                    Explore legal acts
-                </a>
+                <h1 class="amx-hero-title">
+                    <span class="amx-hero-title-thin">Clarity across</span>
+                    <span class="amx-hero-title-bold">European food legislation.</span>
+                </h1>
 
-                <a class="anx-button anx-button-ghost" href="#metrics">
-                    Monitoring summary
-                </a>
+                <p class="amx-hero-lede">
+                    Track EU legal acts, amendments, and compliance deadlines in one
+                    structured workspace — updated directly from CELLAR.
+                </p>
+
+                <div class="amx-hero-actions">
+                    <a class="amx-btn-primary" href="#legal-acts">Explore legal acts</a>
+                    <a class="amx-btn-ghost" href="#metrics">Monitoring summary</a>
+                </div>
             </div>
+
+            @* Right column — live CELLAR feed card *@
+            <div class="amx-feed-card" aria-hidden="true">
+                <div class="amx-feed-head">
+                    <div>
+                        <p class="amx-feed-head-label">CELLAR feed</p>
+                        <p class="amx-feed-head-title">Recent activity</p>
+                    </div>
+                    <div class="amx-feed-pulse">
+                        <span class="amx-feed-pulse-dot"></span>
+                        live
+                    </div>
+                </div>
+
+                <div class="amx-feed-body">
+                    @if (legalActs.Any())
+                    {
+                        @foreach (var act in legalActs.Take(5))
+                        {
+                            <div class="amx-feed-row">
+                                <span class="amx-feed-dot @(act.InForce == true ? "is-active" : "")"></span>
+                                <div class="amx-feed-info">
+                                    <span class="amx-feed-celex">@act.Celex</span>
+                                    <span class="amx-feed-date">@act.LastModifiedAt.ToString("dd MMM yyyy")</span>
+                                </div>
+                                @if (act.InForce == true)
+                                {
+                                    <span class="amx-feed-pill">in force</span>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="amx-feed-empty">
+                            No acts imported yet — run a CELLAR sync.
+                        </div>
+                    }
+                </div>
+            </div>
+
         </div>
     </header>
 
-    <section id="legal-acts" class="anx-container">
-        <div class="anx-section-head">
+    @* ============================================================
+       STATS BAR
+       ============================================================ *@
+    <div id="metrics" class="amx-stats-wrap">
+        <div class="amx-stats-bar">
+            <div class="amx-stat">
+                <strong class="amx-stat-value">@legalActs.Count</strong>
+                <span class="amx-stat-label">total acts</span>
+            </div>
+            <div class="amx-stat">
+                <strong class="amx-stat-value">@inForceCount</strong>
+                <span class="amx-stat-label">currently in force</span>
+            </div>
+            <div class="amx-stat">
+                <strong class="amx-stat-value">@recentlyModifiedCount</strong>
+                <span class="amx-stat-label">modified in 30 days</span>
+            </div>
+            <div class="amx-stat">
+                <strong class="amx-stat-value">@upcomingDeadlines</strong>
+                <span class="amx-stat-label">upcoming deadlines</span>
+            </div>
+        </div>
+    </div>
+
+    @* ============================================================
+       LEGAL ACTS TABLE
+       ============================================================ *@
+    <main id="legal-acts" class="amx-section">
+
+        <div class="amx-section-head">
             <div>
-                <p class="anx-section-kicker">CELLAR Repository</p>
                 <h2>Latest legal acts</h2>
+                <p class="amx-section-desc">
+                    Browse and filter EU food and feed legislation sourced from CELLAR.
+                </p>
             </div>
 
             @if (legalActs.Any())
             {
-                <div class="anx-controls">
-                    <input type="search"
-                           id="anx-search-input"
-                           class="anx-input"
-                           placeholder="Search CELEX, title, or topic..."
-                           aria-label="Search legal acts" />
+                <div class="amx-controls">
+                    <div class="amx-search">
+                        <svg class="amx-search-icon" width="15" height="15" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                        <input type="search"
+                               id="amx-search-input"
+                               class="amx-search-input"
+                               placeholder="Search CELEX, title…"
+                               aria-label="Search legal acts" />
+                    </div>
 
-                    <div class="anx-filter-group" role="group" aria-label="Filter by status">
-                        <button type="button" class="anx-filter is-active" data-filter="all">
-                            All
-                        </button>
-
-                        <button type="button" class="anx-filter" data-filter="in-force">
-                            In force
-                        </button>
-
-                        <button type="button" class="anx-filter" data-filter="not-in-force">
-                            Not in force
-                        </button>
+                    <div class="amx-filter-group" role="group" aria-label="Filter by status">
+                        <button type="button" class="amx-filter is-active" data-filter="all">All</button>
+                        <button type="button" class="amx-filter" data-filter="in-force">In force</button>
+                        <button type="button" class="amx-filter" data-filter="not-in-force">Not in force</button>
                     </div>
                 </div>
             }
@@ -78,19 +151,26 @@
 
         @if (!legalActs.Any())
         {
-            <div class="anx-empty">
+            <div class="amx-empty">
+                <div class="amx-empty-icon" aria-hidden="true">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.6"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="9" y1="13" x2="15" y2="13" />
+                        <line x1="9" y1="17" x2="13" y2="17" />
+                    </svg>
+                </div>
                 <h3>No legal acts imported yet</h3>
-                <p>
-                    Run a CELLAR synchronization to populate Amlex with European
-                    food and feed legislation.
-                </p>
+                <p>Run a CELLAR synchronisation to populate Amlex with European food and feed legislation.</p>
             </div>
         }
         else
         {
-            <div class="anx-table-card">
-                <div class="anx-table-scroll">
-                    <table class="anx-table" id="anx-acts-table">
+            <div class="amx-table-card">
+                <div class="amx-table-scroll">
+                    <table class="amx-table" id="amx-acts-table">
                         <thead>
                             <tr>
                                 <th>CELEX</th>
@@ -98,92 +178,100 @@
                                 <th>Status</th>
                                 <th>Dates</th>
                                 <th>Modified</th>
-                                <th class="anx-align-right">Source</th>
+                                <th class="amx-align-right">Source</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            @foreach (var legalAct in legalActs)
+                            @foreach (var act in legalActs)
                             {
-                                var statusKey = legalAct.InForce == true
-                                    ? "in-force"
-                                    : legalAct.InForce == false
-                                        ? "not-in-force"
-                                        : "unknown";
+                                var statusKey = act.InForce == true ? "in-force"
+                                              : act.InForce == false ? "not-in-force"
+                                                                     : "unknown";
 
-                                var primaryTitle = legalAct.TitleNl
-                                    ?? legalAct.TitleEn
-                                    ?? legalAct.TitleFr
-                                    ?? "Untitled legal act";
+                                var primaryTitle = act.TitleNl ?? act.TitleEn ?? act.TitleFr ?? "Untitled legal act";
 
-                                <tr class="anx-row"
-                                    data-status="@statusKey"
-                                    data-search="@legalAct.Celex @primaryTitle @legalAct.TitleNl @legalAct.TitleFr">
+                                <tr data-status="@statusKey"
+                                    data-search="@act.Celex @primaryTitle @act.TitleEn @act.TitleFr">
 
+                                    @* CELEX *@
                                     <td>
-                                        <span class="anx-celex"> <a href=@($"https://eur-lex.europa.eu/legal-content/NL/TXT/PDF/?uri=CELEX:{legalAct.Celex}")>@legalAct.Celex</a></span>
-
-                                        @if (!string.IsNullOrWhiteSpace(legalAct.ResourceType))
+                                        <span class="amx-celex">
+                                            <a href="@($"https://eur-lex.europa.eu/legal-content/NL/TXT/PDF/?uri=CELEX:{act.Celex}")"
+                                               target="_blank" rel="noopener">@act.Celex</a>
+                                        </span>
+                                        @if (!string.IsNullOrWhiteSpace(act.ResourceType))
                                         {
-                                            <span class="anx-type">@legalAct.ResourceType</span>
+                                            <span class="amx-resource-type">@act.ResourceType</span>
                                         }
                                     </td>
 
+                                    @* Title + tags *@
                                     <td>
-                                        <div class="anx-act-title">@primaryTitle</div>
+                                        <div class="amx-act-title">@primaryTitle</div>
 
-                                        @if (legalAct.Relations?.Any() == true)
-                                        {
-                                            <span class="anx-tag">
-                                                @legalAct.Relations.Count
-                                                @(legalAct.Relations.Count == 1 ? "relation" : "relations")
-                                            </span>
+                                        @{
+                                            bool hasTags = (act.Relations?.Any() == true) ||
+                                                           (act.Topics?.Any() == true);
                                         }
-
-                                        @if (legalAct.Topics?.Any() == true)
+                                        @if (hasTags)
                                         {
-                                            foreach (var topic in legalAct.Topics.Take(2))
-                                            {
-                                                <span class="anx-tag">
-                                                    @topic.EuroVocCode
-                                                </span>
-                                            }
-                                        }
-                                    </td>
-
-                                    <td>
-                                        @if (legalAct.InForce == true)
-                                        {
-                                            <span class="anx-status anx-status-active">In force</span>
-                                        }
-                                        else if (legalAct.InForce == false)
-                                        {
-                                            <span class="anx-status anx-status-inactive">Not in force</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="anx-status anx-status-unknown">Unknown</span>
-                                        }
-                                    </td>
-
-                                    <td>
-                                        <div>@(legalAct.DocumentDate?.ToString("dd MMM yyyy") ?? "—")</div>
-
-                                        @if (legalAct.Deadline.HasValue)
-                                        {
-                                            <div class="anx-muted">
-                                                Due @legalAct.Deadline.Value.ToString("dd MMM yyyy")
+                                            <div class="amx-tags">
+                                                @if (act.Relations?.Any() == true)
+                                                {
+                                                    <span class="amx-tag">
+                                                        @act.Relations.Count
+                                                        @(act.Relations.Count == 1 ? "relation" : "relations")
+                                                    </span>
+                                                }
+                                                @foreach (var topic in (act.Topics ?? Enumerable.Empty<Amlex.Models.Core.LegalActTopic>()).Take(2))
+                                                {
+                                                    <span class="amx-tag">@topic.EuroVocCode</span>
+                                                }
                                             </div>
                                         }
                                     </td>
 
+                                    @* Status *@
                                     <td>
-                                        @legalAct.LastModifiedAt.ToString("dd MMM yyyy")
+                                        @if (act.InForce == true)
+                                        {
+                                            <span class="amx-status amx-status-active">In force</span>
+                                        }
+                                        else if (act.InForce == false)
+                                        {
+                                            <span class="amx-status amx-status-inactive">Not in force</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="amx-status amx-status-unknown">Unknown</span>
+                                        }
                                     </td>
 
-                                    <td class="anx-align-right">
-                                        <a class="anx-link"
-                                           href="@legalAct.CellarId"
+                                    @* Dates *@
+                                    <td>
+                                        <span class="amx-date-primary">
+                                            @(act.DocumentDate?.ToString("dd MMM yyyy") ?? "—")
+                                        </span>
+                                        @if (act.Deadline.HasValue)
+                                        {
+                                            <span class="amx-date-secondary">
+                                                Due @act.Deadline.Value.ToString("dd MMM yyyy")
+                                            </span>
+                                        }
+                                    </td>
+
+                                    @* Modified *@
+                                    <td>
+                                        <span class="amx-modified">
+                                            @act.LastModifiedAt.ToString("dd MMM yyyy")
+                                        </span>
+                                    </td>
+
+                                    @* Source link *@
+                                    <td class="amx-align-right">
+                                        <a class="amx-cellar-link"
+                                           href="@act.CellarId"
                                            target="_blank"
                                            rel="noopener">
                                             CELLAR
@@ -195,12 +283,13 @@
                     </table>
                 </div>
 
-                <div id="anx-no-results" class="anx-no-results" hidden>
+                <div id="amx-no-results" class="amx-no-results" hidden>
                     No legal acts match your current filters.
                 </div>
             </div>
         }
-    </section>
+
+    </main>
 </div>
 
 @section Scripts {

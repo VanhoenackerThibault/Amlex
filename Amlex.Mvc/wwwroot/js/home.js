@@ -1,44 +1,53 @@
-﻿(() => {
-    const searchInput = document.getElementById("anx-search-input");
-    const table = document.getElementById("anx-acts-table");
-    const noResults = document.getElementById("anx-no-results");
-    const filters = [...document.querySelectorAll(".anx-filter")];
+﻿/* ================================================================
+   home.js — Amlex home page
+   Live search + status filter for the legal acts table
+   ================================================================ */
+
+(() => {
+    "use strict";
+
+    const table = document.getElementById("amx-acts-table");
+    const noResults = document.getElementById("amx-no-results");
+    const searchEl = document.getElementById("amx-search-input");
+    const filters = [...document.querySelectorAll(".amx-filter")];
 
     if (!table) return;
 
     const rows = [...table.querySelectorAll("tbody tr")];
     let activeFilter = "all";
 
+    /* ── Core filter function ─────────────────────────────────── */
     const applyFilters = () => {
-        const query = searchInput?.value.trim().toLowerCase() ?? "";
-        let visibleCount = 0;
+        const query = (searchEl?.value ?? "").trim().toLowerCase();
+        let visible = 0;
 
         rows.forEach((row) => {
-            const matchesStatus =
+            const statusMatch =
                 activeFilter === "all" || row.dataset.status === activeFilter;
 
-            const matchesSearch =
-                !query || (row.dataset.search ?? "").toLowerCase().includes(query);
+            const searchMatch =
+                !query ||
+                (row.dataset.search ?? "").toLowerCase().includes(query);
 
-            const isVisible = matchesStatus && matchesSearch;
-            row.hidden = !isVisible;
-
-            if (isVisible) visibleCount += 1;
+            const show = statusMatch && searchMatch;
+            row.hidden = !show;
+            if (show) visible++;
         });
 
-        if (noResults) {
-            noResults.hidden = visibleCount > 0;
-        }
+        if (noResults) noResults.hidden = visible > 0;
     };
 
-    searchInput?.addEventListener("input", applyFilters);
+    /* ── Wire up search ───────────────────────────────────────── */
+    if (searchEl) {
+        searchEl.addEventListener("input", applyFilters);
+    }
 
-    filters.forEach((button) => {
-        button.addEventListener("click", () => {
-            filters.forEach((item) => item.classList.remove("is-active"));
-            button.classList.add("is-active");
-
-            activeFilter = button.dataset.filter;
+    /* ── Wire up filter buttons ───────────────────────────────── */
+    filters.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            filters.forEach((b) => b.classList.remove("is-active"));
+            btn.classList.add("is-active");
+            activeFilter = btn.dataset.filter;
             applyFilters();
         });
     });
