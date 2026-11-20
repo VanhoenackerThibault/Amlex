@@ -121,7 +121,7 @@
                                     data-search="@legalAct.Celex @primaryTitle @legalAct.TitleNl @legalAct.TitleFr">
 
                                     <td>
-                                        <span class="anx-celex">@legalAct.Celex</span>
+                                        <span class="anx-celex"> <a href=@($"https://eur-lex.europa.eu/legal-content/NL/TXT/PDF/?uri=CELEX:{legalAct.Celex}")>@legalAct.Celex</a></span>
 
                                         @if (!string.IsNullOrWhiteSpace(legalAct.ResourceType))
                                         {

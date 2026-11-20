@@ -23,14 +23,24 @@ namespace Amlex.Services.Database
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task<DateTime> GetLastUpdateTimeAsync()
+        public async Task<DateTime?> GetLastUpdateTimeAsync()
         {
-            return dbContext.LegalActsFetchHistory.Max(f => f.LastUpdateTime);
+            if (dbContext.LegalActsFetchHistory.Any())
+            {
+                return dbContext.LegalActsFetchHistory.Max(f => f.LastUpdateTime);
+            }
+
+            return null;
         }
 
-        public async Task<DateTime> GetLastFetchTimeAsync()
+        public async Task<DateTime?> GetLastFetchTimeAsync()
         {
-            return dbContext.LegalActsFetchHistory.Max(f => f.FetchedAt);
+            if (dbContext.LegalActsFetchHistory.Any())
+            {
+                return dbContext.LegalActsFetchHistory.Max(f => f.FetchedAt);  
+            }
+
+            return null;
         }
     }
 }

@@ -9,8 +9,8 @@ namespace Amlex.Interfaces.Services
     {
         public Task CreateWatchItemAsync(List<LegalAct> acts);
 
-        public Task<DateTime> GetLastUpdateTimeAsync();
+        public Task<DateTime?> GetLastUpdateTimeAsync();
 
-        public Task<DateTime> GetLastFetchTimeAsync();
+        public Task<DateTime?> GetLastFetchTimeAsync();
     }
 }

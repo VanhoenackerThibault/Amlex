@@ -117,17 +117,18 @@ namespace Amlex.Services.Sparql
 
         public async Task UpdateSparqlData()
         {
-            const int PageSize = 5000;
-            DateTime lastUpdateTime = await legalActsFetchHistoryService.GetLastUpdateTimeAsync();
-            DateTime lastFetchTime = await legalActsFetchHistoryService.GetLastFetchTimeAsync();
+            const int PageSize = 200;
+            DateTime? lastFetchTime = await legalActsFetchHistoryService.GetLastFetchTimeAsync();
 
-            if (DateTime.UtcNow < lastFetchTime.AddHours(1))
+            if (lastFetchTime is not null && DateTime.UtcNow < lastFetchTime.Value.AddHours(1))
             {
                 logger.LogWarning("UpdateSparqlData called but fetched data less than 1 hour ago, returning");
                 return;
             }
 
+            logger.LogInformation("Getting new info out of cellar database");
 
+            DateTime? lastUpdateTime = await legalActsFetchHistoryService.GetLastUpdateTimeAsync();
 
 
             // fetching base info to create legalact
@@ -142,6 +143,7 @@ namespace Amlex.Services.Sparql
 
             if (acts is null || acts.Count == 0)
             {
+                logger.LogWarning("No acts found");
                 return;
             }
 

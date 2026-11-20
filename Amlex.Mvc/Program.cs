@@ -1,4 +1,5 @@
 using Amlex.Mvc.Installers;
+using Amlex.Mvc.Middleware;
 using Amlex.Services.Sparql.Settings;
 
 namespace Amlex.Mvc
@@ -33,6 +34,8 @@ namespace Amlex.Mvc
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseMiddleware<RefreshSparqlDataMiddleware>();
 
             app.MapStaticAssets();
             app.MapControllerRoute(

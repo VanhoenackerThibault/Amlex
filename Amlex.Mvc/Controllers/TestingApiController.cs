@@ -21,7 +21,7 @@ namespace Amlex.Mvc.Controllers
         [HttpGet]
         public async Task<IActionResult> BackFill()
         {
-            await sparqlApiService.UpdateSparqlData();
+            await sparqlApiService.RunBackFillSparqlDataAsync();
 
             return Ok();
         }
