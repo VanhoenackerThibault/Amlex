@@ -10,7 +10,7 @@ namespace Amlex.Mvc.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TestingApiController(SparqlApiService sparqlApiService, ILegalActService legalActService) : ControllerBase
+    public class TestingController(SparqlApiService sparqlApiService, ILegalActService legalActService) : ControllerBase
     {
         //[HttpGet]
         //public async Task<ActionResult<SparqlResponse?>> Get()

@@ -27,6 +27,26 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+                        @if (User.Identity is not null && User.Identity.IsAuthenticated)
+                        {
+                            <span class="wz-sidebar-username">@User.Identity.Name</span>
+                            <form asp-controller="Authentication" asp-action="SignOut" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="nav-link wz-signout-btn">
+                                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                    <span>Sign out</span>
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Authentication" asp-action="Register">register</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Authentication" asp-action="SignIn">signIn</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>

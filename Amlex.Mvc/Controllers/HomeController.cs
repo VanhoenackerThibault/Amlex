@@ -1,11 +1,13 @@
 using Amlex.Interfaces.Services;
 using Amlex.Mvc.Models;
 using Amlex.Services.Database;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace Amlex.Mvc.Controllers
 {
+    [Authorize]
     public class HomeController(ILegalActService legalActService) : Controller
     {
         public async Task<IActionResult> Index()

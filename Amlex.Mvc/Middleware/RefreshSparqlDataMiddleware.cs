@@ -17,8 +17,6 @@ namespace Amlex.Mvc.Middleware
                 LastFetch = await legalActsFetchHistoryService.GetLastFetchTimeAsync();
             }
 
-            //logger.LogWarning("last fetched {time}", LastFetch);
-
             if (LastFetch is null || LastFetch.Value.AddHours(1) < DateTime.UtcNow)
             {
                 try

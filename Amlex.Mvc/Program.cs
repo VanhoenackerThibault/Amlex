@@ -1,6 +1,7 @@
 using Amlex.Mvc.Installers;
 using Amlex.Mvc.Middleware;
 using Amlex.Services.Sparql.Settings;
+using Microsoft.AspNetCore.Identity;
 
 namespace Amlex.Mvc
 {
@@ -18,6 +19,8 @@ namespace Amlex.Mvc
             builder.Services.InstallDbConnection(conn);
             builder.Services.InstallScopedServices();
             builder.Services.InstallHttpClients();
+            builder.Services.InstallDefaultIdentity();
+
 
 
             var app = builder.Build();
@@ -33,6 +36,7 @@ namespace Amlex.Mvc
             app.UseHttpsRedirection();
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseMiddleware<RefreshSparqlDataMiddleware>();

@@ -2,11 +2,10 @@
 using Amlex.Models.Models.LegalActs;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
 
 namespace Amlex.Repository
 {
-    public class AmlexDbContext(DbContextOptions<AmlexDbContext> options) : IdentityDbContext(options)
+    public class AmlexDbContext(DbContextOptions<AmlexDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
         public DbSet<LegalAct> LegalActs { get; set; }
         public DbSet<LegalActsFetchHistory> LegalActsFetchHistory { get; set; }
